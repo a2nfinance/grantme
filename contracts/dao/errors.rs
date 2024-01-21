@@ -8,5 +8,12 @@ pub enum Error {
     VotingHasNotEnd,
     NotAllowRevoting,
     SameVotingOption,
-    NotAllowVoting
+    IncorrectVotingOption,
+    NotAllowVoting,
+    NotAdmin,
+    NormalMemberExisted,
+    NotANormalMember,
+    StepMemberExisted,
+    CouldNotGetOraclePrice,
+    NotEnoughBalance
 }
