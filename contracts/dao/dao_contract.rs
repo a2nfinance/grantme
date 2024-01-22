@@ -2,13 +2,15 @@
 
 #[ink::contract]
 pub mod dao {
-    use dia_oracle_getter::OracleGetters;
     use ink::contract_ref;
-    use crate::errors::*;
-    use crate::types::*;
     use ink::prelude::string::String;
     use ink::prelude::vec::Vec;
     use ink::storage::Mapping;
+
+    use crate::errors::*;
+    use crate::types::*;
+
+    use dia_oracle_getter::OracleGetters;
 
     #[ink(storage)]
     pub struct Dao {
@@ -82,6 +84,7 @@ pub mod dao {
                 allow_revoting: allow_revoting,
             }
         }
+
         // owner: AccountId,
         // admin: AccountId,
         // name: String,
