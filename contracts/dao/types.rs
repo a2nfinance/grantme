@@ -1,9 +1,9 @@
 use ink::primitives::{AccountId};
 use ink::prelude::string::String;
-#[derive(scale::Decode, scale::Encode, Debug)]
+#[derive(scale::Decode, scale::Encode, Debug, Clone)]
 #[cfg_attr(
     feature = "std",
-    derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout, Clone)
+    derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
 )]
 pub struct Step {
     pub step_index: u8,
@@ -13,10 +13,10 @@ pub struct Step {
     pub threshold: u8,
 }
 
-#[derive(scale::Decode, scale::Encode, Debug)]
+#[derive(scale::Decode, scale::Encode, Debug, Clone)]
 #[cfg_attr(
     feature = "std",
-    derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout, Clone)
+    derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
 )]
 pub struct Proposal {
     pub proposal_index: u32,
@@ -35,10 +35,10 @@ pub struct Proposal {
     pub executed: bool
 }
 
-#[derive(scale::Decode, scale::Encode, Debug)]
+#[derive(scale::Decode, scale::Encode, Debug, Clone)]
 #[cfg_attr(
     feature = "std",
-    derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout, Clone)
+    derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
 )]
 pub struct ProposalVoting {
     pub agree: u32,
@@ -60,7 +60,7 @@ impl Default for Step {
     fn default() -> Self {
         Self {
             step_index: 0,
-            title: "".to_string(),
+            title: String::from(""),
             use_default_settings: true,
             quorum: 0,
             threshold: 0,
@@ -73,13 +73,13 @@ impl Default for Proposal {
         Self {
             proposal_index: 0,
             proposer: AccountId::from([0x00; 32]),
-            title: "".to_string(),
-            description: "".to_string(),
+            title: String::from(""),
+            description: String::from(""),
             start_date: 0,
             end_date: 0,
             use_fiat: false,
             payment_amount_fiat: 0,
-            cryto_fiat_key: "AZERO/USD".to_string(),
+            cryto_fiat_key: String::from("AZERO/USD"),
             payment_amount_crypto: 0,
             token: AccountId::from([0x00; 32]),
             to: AccountId::from([0x00; 32]),

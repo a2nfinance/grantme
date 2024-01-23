@@ -15,5 +15,7 @@ pub enum Error {
     NotANormalMember,
     StepMemberExisted,
     CouldNotGetOraclePrice,
-    NotEnoughBalance
+    NotEnoughBalance,
+    NotWhitelistedContributor,
+    ZeroFundAmount
 }

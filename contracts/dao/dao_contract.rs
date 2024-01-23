@@ -1,5 +1,3 @@
-#![cfg_attr(not(feature = "std"), no_std, no_main)]
-
 #[ink::contract]
 pub mod dao {
     use ink::contract_ref;
@@ -85,6 +83,23 @@ pub mod dao {
             }
         }
 
+
+        #[ink(message, payable)]
+        pub fn fund(&self) -> Result<(), Error> {
+            let caller = Self::env().caller();
+            if !self.whitelisted_contributors.contains(&caller) {
+                return Err(Error::NotWhitelistedContributor);
+            }
+
+            let amount = self.env().transferred_value();
+
+            if amount == 0 {
+                return Err(Error::ZeroFundAmount);
+            }
+
+            Ok(())
+
+        }
         // owner: AccountId,
         // admin: AccountId,
         // name: String,
@@ -123,7 +138,7 @@ pub mod dao {
         ) {
             (
                 self.owner,
-                self.admin.clone(),
+                self.admin,
                 self.name.clone(),
                 self.description.clone(),
                 self.website.clone(),
@@ -133,8 +148,8 @@ pub mod dao {
                 self.steps.clone(),
                 self.proposals.clone(),
                 self.whitelisted_contributors.clone(),
-                self.global_voting_quorum.clone(),
-                self.global_voting_threshold.clone(),
+                self.global_voting_quorum,
+                self.global_voting_threshold,
                 self.normal_members.clone(),
                 self.open,
                 self.status,
@@ -207,7 +222,7 @@ pub mod dao {
         // Value: 1 - agree, 2 - disagree, 3 - neutral
         #[ink(message)]
         pub fn voting(&mut self, proposal_index: u32, step: u8, value: u8) -> Result<(), Error> {
-            if !vec![1,2,3].contains(&value) {
+            if !Vec::from([1,2,3]).contains(&value) {
                 return Err(Error::IncorrectVotingOption);
             }
             let num_proposals: u32 = self.proposals.len() as u32;
@@ -337,7 +352,7 @@ pub mod dao {
                 // Transfer token
                 if proposal.use_fiat {
                     // Diadata here
-                    let option_price: Option<(u64, u128)> = self.oracle.get_latest_price((*proposal.cryto_fiat_key).to_string());
+                    let option_price: Option<(u64, u128)> = self.oracle.get_latest_price(proposal.cryto_fiat_key.clone());
                     let mut fetch_price_success = true;
                     match option_price {
                         Some((_, price128)) => amount = (proposal.payment_amount_fiat as u128) * price128,
@@ -616,6 +631,121 @@ pub mod dao {
             assert_eq!(proposal.is_some(), true);
             assert_eq!(proposal.unwrap().executed, true);
             assert_eq!(previous_balance - after_balance, 200)
+        }
+    }
+
+
+    #[cfg(all(test, feature = "e2e-tests"))]
+    #[cfg_attr(all(test, feature = "e2e-tests"), allow(unused_imports))]
+    mod e2e_tests {
+        use super::*;
+        use dia_oracle_setter::OracleSetters;
+        use dia_oracle::TokenPriceStorageRef;
+        use ink_e2e::build_message;
+
+        type E2EResult<T> = std::result::Result<T, Box<dyn std::error::Error>>;
+
+        #[ink_e2e::test]
+        async fn test_oracle_integration(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+            let admin_acc = AccountId::from([0x01; 32]);
+            let step1_member = AccountId::from([0x02; 32]);
+            let step2_member = AccountId::from([0x03; 32]);
+            let whitelisted_contributor = AccountId::from([0x04; 32]);
+            let normal_member = AccountId::from([0x05; 32]);
+            let token = AccountId::from([0x06; 32]);
+            let recipient = AccountId::from([0x07; 32]);
+            
+            // init Oracle contract
+            // AZERO/USD - 2024/23/01
+            const PRICE: u128 = 1_071_576_625_798_566_000;
+
+            let constructor = TokenPriceStorageRef::new();
+            let contract_acc_id = client
+                .instantiate("dia_oracle", &ink_e2e::alice(), constructor, 0, None)
+                .await
+                .expect("instantiate failed")
+                .account_id;
+
+            //init Oracle Example contract
+
+            let dao_contructor = DaoRef::new(
+                contract_acc_id,
+                admin_acc,
+                "Name".to_string(),
+                "Description".to_string(),
+                "Website".to_string(),
+                "Email".to_string(),
+                "Address".to_string(),
+                vec!["twitter".to_string(), "facebook".to_string()],
+                vec![
+                    Step {
+                        step_index: 0,
+                        title: "Step 1".to_string(),
+                        use_default_settings: true,
+                        quorum: 0,
+                        threshold: 0,
+                    },
+                    Step {
+                        step_index: 1,
+                        title: "Step 2".to_string(),
+                        use_default_settings: true,
+                        quorum: 0,
+                        threshold: 0,
+                    },
+                ],
+                vec![vec![step1_member], vec![step2_member]],
+                vec![whitelisted_contributor],
+                100,
+                100,
+                vec![normal_member],
+                false,
+                false,
+            );
+
+            let dao_contract_acc_id = client
+                .instantiate("dao", &ink_e2e::alice(), dao_contructor, 0, None)
+                .await
+                .expect("instantiate failed")
+                .account_id;
+
+            // set price for oracle
+            let set_price_message = build_message::<TokenPriceStorageRef>(contract_acc_id.clone())
+                .call(|tps| tps.set_price("AZERO/USD".to_string(), PRICE));
+
+            let _set_price_res = client
+                .call(&ink_e2e::alice(), set_price_message, 0, None)
+                .await
+                .expect("set failed");
+
+            let get_price_message = build_message::<TokenPriceStorageRef>(contract_acc_id.clone())
+                .call(|tps| tps.get_latest_price("AZERO/USD".to_string()));
+
+            let get_price_res = client
+                .call(&ink_e2e::alice(), get_price_message, 0, None)
+                .await
+                .expect("get failed");
+
+            let latest_price = get_price_res.return_value().expect("Value is None").1;
+            assert_eq!(latest_price, PRICE);
+
+            // get price for oracle from DAO contract
+
+            let get_price_message_example =
+                build_message::<DaoRef>(dao_contract_acc_id.clone())
+                    .call(|dao| dao.get_price("AZERO/USD".to_string()));
+
+            let get_price_res_example = client
+                .call(&ink_e2e::alice(), get_price_message_example, 0, None)
+                .await
+                .expect("get failed");
+
+            let latest_price = get_price_res_example
+                .return_value()
+                .expect("Value is None")
+                .1;
+            assert_eq!(latest_price, PRICE);
+
+            Ok(())
         }
     }
 }
