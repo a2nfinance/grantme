@@ -35,6 +35,8 @@ pub mod dao {
         // Member address, proposal index, step index, value
         member_voted: Mapping<(AccountId, u32, u8), u8>,
         allow_revoting: bool,
+        programs: Vec<Program>,
+        program_to_proposals: Vec<Vec<u32>>
     }
 
     impl Dao {
@@ -80,6 +82,8 @@ pub mod dao {
                 status: true,
                 member_voted: Mapping::default(),
                 allow_revoting: allow_revoting,
+                programs: Vec::new(),
+                program_to_proposals: Vec::new()
             }
         }
 
@@ -128,11 +132,16 @@ pub mod dao {
             String,
             Vec<String>,
             Vec<Step>,
-            Vec<Proposal>,
-            Vec<AccountId>,
+            // count proposal
+            u32,
+            // count whitelisted contributors
+            u32,
             u8,
             u8,
-            Vec<AccountId>,
+            // count normal member
+            u32,
+            // count programs
+            u32,
             bool,
             bool,
         ) {
@@ -146,27 +155,50 @@ pub mod dao {
                 self.address.clone(),
                 self.social_accounts.clone(),
                 self.steps.clone(),
-                self.proposals.clone(),
-                self.whitelisted_contributors.clone(),
+                self.proposals.len() as u32,
+                self.whitelisted_contributors.len() as u32,
                 self.global_voting_quorum,
                 self.global_voting_threshold,
-                self.normal_members.clone(),
+                self.normal_members.len() as u32,
+                self.programs.len() as u32,
                 self.open,
                 self.status,
             )
         }
 
+        #[ink(message)] 
+        pub fn create_program(&mut self, title: String, description: String, start_date: u64, end_date: u64) -> Result<(), Error> {
+            let caller = Self::env().caller();
+            if caller != self.admin {
+                return Err(Error::NotAdmin);
+            }
+
+            let num_programs: u32 = self.programs.len() as u32;
+
+            let program = Program {
+                program_index: num_programs,
+                title: title,
+                description: description,
+                start_date: start_date,
+                end_date: end_date
+            };
+
+            self.programs.push(program);
+            self.program_to_proposals.push(Vec::new());
+            Ok(())
+        }
         #[ink(message)]
         pub fn create_proposal(
             &mut self,
+            program_index: u32,
             title: String,
             description: String,
-            start_date: Timestamp,
-            end_date: Timestamp,
+            start_date: u64,
+            end_date: u64,
             use_fiat: bool,
             payment_amount_fiat: u32,
             cryto_fiat_key: String,
-            payment_amount_crypto: Balance,
+            payment_amount_crypto: u128,
             token: AccountId,
             to: AccountId,
             allow_early_executed: bool,
@@ -177,10 +209,26 @@ pub mod dao {
                 if !self.normal_members.contains(&caller) {
                     return Err(Error::NotANormalMember);
                 }
-            } 
+            }
+            // Check program exist
+            if (self.programs.len() as u32) < program_index {
+                return Err(Error::ProgramIndexOutOfBound);
+            }   
+
+            let program: &Program = &self.programs[program_index as usize];
+
+            if program.start_date > Self::env().block_timestamp() {
+                return Err(Error::ProgramHasNotStarted);
+            }
+
+            if program.end_date < Self::env().block_timestamp() {
+                return Err(Error::ProgramHasEnded);
+            }
+
             // Setup proposal
             let count_proposal = self.proposals.len() as u32;
             let proposal = Proposal {
+                program_index: program_index,
                 proposal_index: count_proposal,
                 proposer: caller,
                 title: title,
@@ -216,6 +264,8 @@ pub mod dao {
                 );
                 i += 1;
             }
+            // Insert to program
+            self.program_to_proposals[program_index  as usize].push(count_proposal);
 
             Ok(())
         }
@@ -379,34 +429,6 @@ pub mod dao {
             Ok(())
         }
 
-        #[ink(message)]
-        pub fn get_proposal(&self, proposal_index: u32) -> Option<Proposal> {
-            let num_proposals: u32 = self.proposals.len() as u32;
-            if num_proposals < proposal_index {
-                return None;
-            } 
-            let proposal = &self.proposals[proposal_index as usize];
-            Some(proposal.clone())
-        }
-
-        #[ink(message)]
-        pub fn get_steps_voting_status(&self, proposal_index: u32) -> Vec<ProposalVoting> {
-            let mut step_votings: Vec<ProposalVoting> = Vec::new();
-            let steps_len: u8 = self.steps.len() as u8;
-            let mut i: u8 = 0;
-            loop {
-                if i >= steps_len {
-                    break;
-                }
-                let step_voting: ProposalVoting = self
-                    .proposal_voting_status
-                    .get((proposal_index, i))
-                    .unwrap_or_default();
-                step_votings.push(step_voting);
-                i += 1;
-            }
-            step_votings
-        }
 
         #[ink(message)]
         pub fn add_normal_member(&mut self, new_member: AccountId) -> Result<(), Error> {
@@ -434,6 +456,7 @@ pub mod dao {
             self.normal_members.retain(|&x| x != old_member);
             Ok(())
         }
+
 
         #[ink(message)]
         pub fn add_step_members(
@@ -472,6 +495,83 @@ pub mod dao {
 
             self.step_members[step_index as usize] = step_members.to_vec();
             Ok(())
+        }
+
+        // Get functions
+
+        #[ink(message)]
+        pub fn get_proposal(&self, proposal_index: u32) -> Option<Proposal> {
+            let num_proposals: u32 = self.proposals.len() as u32;
+            if num_proposals < proposal_index {
+                return None;
+            } 
+            let proposal = &self.proposals[proposal_index as usize];
+            Some(proposal.clone())
+        }
+
+        #[ink(message)]
+        pub fn get_program(&self, program_index: u32) -> Option<Program> {
+            let num_programs: u32 = self.programs.len() as u32;
+            if num_programs < program_index {
+                return None;
+            } 
+            let program = &self.programs[program_index as usize];
+            Some(program.clone())
+        }
+
+        #[ink(message)]
+        pub fn get_programs(&self) -> Vec<Program> {
+            self.programs.clone()
+        }
+
+        #[ink(message)]
+        pub fn get_program_proposals(&self, program_index: u32) -> Option<Vec<Proposal>> {
+            let num_programs: u32 = self.programs.len() as u32;
+            if num_programs < program_index {
+                return None;
+            } 
+            let proposal_indexes: &Vec<u32> = &self.program_to_proposals[program_index as usize];
+            let mut proposals: Vec<Proposal> = Vec::new();
+            let mut i: u32 = 0;
+            loop {
+                if i >= (proposal_indexes.len() as u32) {
+                    break;
+                }
+
+                proposals.push(self.proposals[proposal_indexes[i as usize] as usize].clone());
+                i += 1;
+            }
+
+            Some(proposals)
+        }
+
+        #[ink(message)]
+        pub fn get_steps_voting_status(&self, proposal_index: u32) -> Vec<ProposalVoting> {
+            let mut step_votings: Vec<ProposalVoting> = Vec::new();
+            let steps_len: u8 = self.steps.len() as u8;
+            let mut i: u8 = 0;
+            loop {
+                if i >= steps_len {
+                    break;
+                }
+                let step_voting: ProposalVoting = self
+                    .proposal_voting_status
+                    .get((proposal_index, i))
+                    .unwrap_or_default();
+                step_votings.push(step_voting);
+                i += 1;
+            }
+            step_votings
+        }
+
+        #[ink(message)]
+        pub fn get_step_members(&self) -> Vec<Vec<AccountId>> {
+            self.step_members.clone()
+        }
+
+        #[ink(message)]
+        pub fn get_normal_members(&self) -> Vec<AccountId> {
+            self.normal_members.clone()
         }
 
         #[ink(message)]
@@ -574,9 +674,20 @@ pub mod dao {
                 false,
             );
 
+            ink::env::test::set_caller::<Environment>(admin_acc);
+
+            let _ = dao.create_program(
+                "Program Title".to_string(),
+                "Program Description".to_string(),
+                0,
+                1000 * 1000
+            );
+            
+
             // Created proposal
             ink::env::test::set_caller::<Environment>(normal_member);
             let result: Result<(), Error> = dao.create_proposal(
+                0,
                 "Title".to_string(),
                 "Description".to_string(),
                 0,
@@ -598,11 +709,17 @@ pub mod dao {
                 _ => ()
             }
 
-            let (_, admin, name, _, _, _, _, _, _, proposals, _, _, _, normal_members, _, _) =
+            let dao_info =
                 dao.get_info();
-            assert_eq!(admin, admin_acc);
-            assert_eq!(name, "Name".to_string());
-            assert_eq!(normal_members.len(), 1);
+            // Admin account id
+            assert_eq!(dao_info.1, admin_acc);
+            // Name
+            assert_eq!(dao_info.2, "Name".to_string());
+            // num of normal members
+            assert_eq!(dao_info.13, 1);
+            // num of programs
+            assert_eq!(dao_info.14, 1);
+
             if success {
                 assert_eq!(proposals[0].title, "Title".to_string());
             } else {

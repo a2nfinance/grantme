@@ -17,5 +17,8 @@ pub enum Error {
     CouldNotGetOraclePrice,
     NotEnoughBalance,
     NotWhitelistedContributor,
-    ZeroFundAmount
+    ZeroFundAmount,
+    ProgramIndexOutOfBound,
+    ProgramHasNotStarted,
+    ProgramHasEnded
 }

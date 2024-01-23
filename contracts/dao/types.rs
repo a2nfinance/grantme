@@ -1,5 +1,20 @@
 use ink::primitives::{AccountId};
 use ink::prelude::string::String;
+
+
+#[derive(scale::Decode, scale::Encode, Debug, Clone)]
+#[cfg_attr(
+    feature = "std",
+    derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
+)]
+pub struct Program {
+    pub program_index: u32,
+    pub title: String,
+    pub description: String,
+    pub start_date: u64,
+    pub end_date: u64,
+}
+
 #[derive(scale::Decode, scale::Encode, Debug, Clone)]
 #[cfg_attr(
     feature = "std",
@@ -19,6 +34,7 @@ pub struct Step {
     derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
 )]
 pub struct Proposal {
+    pub program_index: u32,
     pub proposal_index: u32,
     pub proposer: AccountId,
     pub title: String,
@@ -46,6 +62,18 @@ pub struct ProposalVoting {
     pub neutral: u32
 }
 
+impl Default for Program {
+    fn default() -> Self {
+        Self {
+            program_index: 0,
+            title: String::from(""),
+            description: String::from(""),
+            start_date: 0,
+            end_date: 0,
+        }
+    }
+}
+
 impl Default for ProposalVoting {
     fn default() -> Self {
         Self {
@@ -71,6 +99,7 @@ impl Default for Step {
 impl Default for Proposal {
     fn default() -> Self {
         Self {
+            program_index: 0,
             proposal_index: 0,
             proposer: AccountId::from([0x00; 32]),
             title: String::from(""),
