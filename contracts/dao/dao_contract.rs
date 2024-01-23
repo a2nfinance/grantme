@@ -721,7 +721,7 @@ pub mod dao {
             assert_eq!(dao_info.14, 1);
 
             if success {
-                assert_eq!(proposals[0].title, "Title".to_string());
+                assert_eq!(dao_info.9, 1);
             } else {
                 assert!(false, "{}", error);
             }
