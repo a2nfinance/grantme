@@ -1,0 +1,72 @@
+{
+  "name": "grantme",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "next dev -p 9010",
+    "build": "next build",
+    "start": "next start -p 9010"
+  },
+  "dependencies": {
+    "@ant-design/icons": "^5.2.6",
+    "@reduxjs/toolkit": "^2.0.1",
+    "antd": "^5.12.8",
+    "dotenv": "^16.0.3",
+    "moment": "^2.29.4",
+    "next": "14.0.2",
+    "nprogress": "^0.2.0",
+    "react": "18.2.0",
+    "react-countup": "^6.4.2",
+    "react-dom": "18.2.0",
+    "react-icons": "^4.10.1",
+    "react-redux": "^9.0.4",
+    "useink": "^1.14.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "autoprefixer": "^10.0.1",
+    "eslint": "^8",
+    "eslint-config-next": "14.0.2",
+    "postcss": "^8",
+    "typescript": "^5"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/a2nfinance/grantme.git"
+  },
+  "keywords": [
+    "a2n",
+    "grantme",
+    "dao",
+    "payment",
+    "alephzero"
+  ],
+  "author": "a2n.finance",
+  "license": "BSL",
+  "bugs": {
+    "url": "https://github.com/a2nfinance/grantme/issues"
+  },
+  "homepage": "https://github.com/a2nfinance/starlancer#readme",
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browser": {
+    "fs": false,
+    "path": false
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
