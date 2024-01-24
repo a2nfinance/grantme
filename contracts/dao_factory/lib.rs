@@ -6,20 +6,36 @@ mod dao_factory {
     use ink::prelude::vec::Vec;
     use ink::ToAccountId;
     use ink::prelude::string::String;
+    use ink::storage::Mapping;
+
     #[ink(storage)]
     pub struct DaoFactory {
         owner: AccountId,
         oracle_address: AccountId,
         daos: Vec<AccountId>,
         dao_code_hash: Hash,
+        // Only whitelisted creators can create DAO when Open is false
+        whitelisted_creators: Vec<AccountId>,
+        // Num of creators' DAOs
+        num_creator_daos: Mapping<AccountId, u8>,
+        // How many DAOs a creator can create 
+        limited_number: u8,
+        // True: anyone can create new DAO, False: Only whitelisted creators
+        open: bool,
+        
     }
+
     #[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
     #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
     pub enum DaoFactoryError {
         CouldNotCreateDAO,
         SameDaoCodeHash,
         NotOwner,
+        DaoCreatorExisted,
+        NotInWhitelistedCreators,
+        ExceedLimitedDAONumber,
     }
+
     impl DaoFactory {
         // owner # deploy account
         #[ink(constructor)]
@@ -29,6 +45,10 @@ mod dao_factory {
                 oracle_address: oracle_address,
                 daos: Vec::new(),
                 dao_code_hash: dao_code_hash,
+                whitelisted_creators: Vec::new(),
+                num_creator_daos: Mapping::default(),
+                limited_number: 5,
+                open: true
             }
         }
 
@@ -51,6 +71,21 @@ mod dao_factory {
             open: bool,
             allow_revoting: bool,
         ) -> Result<AccountId, DaoFactoryError> {
+            let caller = Self::env().caller();
+
+            // Check creation previlege
+            if !self.open {
+                if !self.whitelisted_creators.contains(&caller) {
+                    return Err(DaoFactoryError::NotInWhitelistedCreators);
+                }
+            }
+
+            let num_creator_daos: u8 = self.num_creator_daos.get(caller).unwrap_or_default();
+            if num_creator_daos >= 5 {
+                return Err(DaoFactoryError::ExceedLimitedDAONumber);
+            }
+
+
             let dao_ref = DaoRef::new(
                 self.oracle_address,
                 Self::env().caller(),
@@ -86,7 +121,7 @@ mod dao_factory {
             let dao_address =
                 <DaoRef as ToAccountId<super::dao_factory::Environment>>::to_account_id(&dao_ref);
             self.daos.push(dao_address);
-
+            self.num_creator_daos.insert(caller, &(num_creator_daos + 1));
             Ok(dao_address)
         }
 
@@ -107,6 +142,47 @@ mod dao_factory {
 
             Ok(())
         }
+
+        #[ink(message)]
+        pub fn add_whitelisted_creator(&mut self, creator: AccountId) -> Result<(), DaoFactoryError> {
+            
+            // Only DAO Factory owner can do
+            if Self::env().caller() != self.owner {
+                return Err(DaoFactoryError::NotOwner);
+            }
+
+            // Whether the DAO creator is existed
+            if self.whitelisted_creators.contains(&creator) {
+                return Err(DaoFactoryError::DaoCreatorExisted);
+            }
+
+            // Add the whitelisted DAO creator here
+            self.whitelisted_creators.push(creator);
+            Ok(())
+        }
+
+        #[ink(message)]
+        pub fn change_open(&mut self, open: bool) -> Result<(), DaoFactoryError> {
+            // Only DAO Factory owner can do
+            if Self::env().caller() != self.owner {
+                return Err(DaoFactoryError::NotOwner);
+            }
+
+            self.open = open;
+            Ok(())
+        }
+
+        #[ink(message)]
+        pub fn change_limited_number(&mut self, limited_number: u8) -> Result<(), DaoFactoryError> {
+            // Only DAO Factory owner can do
+            if Self::env().caller() != self.owner {
+                return Err(DaoFactoryError::NotOwner);
+            }
+
+            self.limited_number = limited_number;
+            Ok(())
+        }
+        
 
         #[ink(message)]
         pub fn get_dao_hash(&self) -> Hash {
