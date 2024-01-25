@@ -9,7 +9,8 @@ export const executeTransaction = async (
     account: WalletAccount,
     messageTitle: string,
     successMessage: string,
-    errorMessage: string
+    errorMessage: string,
+    callback?: Function
 ) => {
 
     let abiMessage = toContractAbiMessage(contract, fnName);
@@ -38,7 +39,8 @@ export const executeTransaction = async (
                 messageTitle,
                 successMessage,
                 MESSAGE_TYPE.SUCCESS
-            )
+            );
+            callback?.();
         } else if (result.status.isErrored) {
             openNotification(
                 messageTitle,
