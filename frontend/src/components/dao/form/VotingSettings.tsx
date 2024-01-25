@@ -27,9 +27,6 @@ export const VotingSettings = () => {
                 </Space>
 
             }>
-                <Form.Item name="title" label="Title" rules={[{ required: true, message: 'Missing title' }]}>
-                    <Input size='large' />
-                </Form.Item>
                 <Row gutter={12}>
                     <Col span={12}>
                         <Form.Item name="quorum" label="Quorum" rules={[{ required: true, message: 'Missing quorum' }]}>

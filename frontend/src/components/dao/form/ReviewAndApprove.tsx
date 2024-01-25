@@ -72,12 +72,12 @@ export const ReviewAndApprove = () => {
                 items={[{
                     key: '1',
                     label: 'Workflow steps',
-                    children: <>{
+                    children: <Space direction="vertical">{
 
                         stepsForm.steps.map((step, index) => {
                             return (
-                                <>
-                                    <Descriptions column={2} title={`Step (${index})`} layout="vertical">
+                                <Card title={`Step (${index})`}>
+                                    <Descriptions column={2}  layout="vertical">
                                         <Descriptions.Item label={"Title"}>
                                             {step.title}
                                         </Descriptions.Item>
@@ -105,11 +105,11 @@ export const ReviewAndApprove = () => {
                                             </Space>
                                         </Descriptions.Item>
                                     </Descriptions>
-                                </>
+                                </Card>
                             )
                         })
 
-                    }</>
+                    }</Space>
                 }]}
             />
 
