@@ -1,10 +1,7 @@
 import { setDaoFormProps } from "@/controller/dao/daoFormSlice";
 import { useAppDispatch, useAppSelector } from "@/controller/hooks";
-import { accountAddressValid } from "@/helpers/data_validation";
 import { headStyle } from "@/theme/layout";
-import { MinusCircleOutlined, PlusOutlined } from "@ant-design/icons";
-import { Button, Card, Col, Form, Input, Radio, Row, Space } from "antd"
-import { AiOutlineWallet } from "react-icons/ai";
+import { Button, Card, Col, Form, Input, Radio, Row, Space } from "antd";
 
 export const VotingSettings = () => {
     const { votingSettingsForm } = useAppSelector(state => state.daoForm)
