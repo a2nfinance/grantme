@@ -1,21 +1,23 @@
 import { store } from "@/controller/store";
-import { ContractPromise, call, toContractAbiMessage, WsProvider, ApiPromise, DecodedContractResult, WalletAccount } from "useink/core";
+import { ContractPromise, call, toContractAbiMessage, WsProvider, ApiPromise, DecodedContractResult, WalletAccount, ContractSubmittableResult } from "useink/core";
 import daoMetadata from "@/contracts/dao.json";
 import daoFactoryMetadata from "@/contracts/dao_factory.json";
 import { actionNames, updateActionStatus } from "@/controller/process/processSlice";
 import { MESSAGE_TYPE, openNotification } from "@/utils/noti";
 import { messages } from "@/helpers/message_consts";
+import { convertDaoDetailData } from "@/helpers/data_converter";
+import { DaoDetail } from "@/controller/dao/daoDetailSlice";
+import { setDAOProps } from "@/controller/dao/daoSlice";
+import { executeTransaction } from "./do_transaction";
 
 let api = null;
 let daoFactoryContract: ContractPromise = null;
-const gasLimit = 3000n * 1000000n;
-const storageDepositLimit = null;
-const getSingletonApi = async () => {
+
+const singletonDaoFactoryContract = async () => {
     if (!api) {
         const wsProvider = new WsProvider(process.env.NEXT_PUBLIC_ALEPH_RPC);
         api = await ApiPromise.create({ provider: wsProvider });
         daoFactoryContract = new ContractPromise(
-            // contract.contract.api, 
             api,
             daoFactoryMetadata,
             process.env.NEXT_PUBLIC_DAO_FACTORY_ADDRESS
@@ -30,14 +32,13 @@ export const createDao = async (account: WalletAccount | undefined) => {
             return;
         }
 
-        await getSingletonApi();
+        await singletonDaoFactoryContract();
 
         let { kycForm, votingSettingsForm, stepsForm, contributorForm, memberForm } = store.getState().daoForm;
 
         store.dispatch(updateActionStatus({ actionName: actionNames.createDAOAction, value: true }));
 
-        await daoFactoryContract.tx.createDao(
-            { storageDepositLimit, gasLimit },
+        let args = [
             parseInt(process.env.NEXT_PUBLIC_DAO_VERSION || "0"),
             kycForm.name,
             kycForm.description,
@@ -70,28 +71,17 @@ export const createDao = async (account: WalletAccount | undefined) => {
             memberForm.members.map(m => m.address),
             memberForm.open,
             votingSettingsForm.allow_revoting
-        ).signAndSend(account.address, { signer: account.wallet?.extension?.signer }, result => {
-            if (result.status.isFinalized) {
-                openNotification(
-                    messages.CREATE_DAO_TITLE,
-                    messages.CREATE_DAO_SUCCESS,
-                    MESSAGE_TYPE.SUCCESS
-                )
-            } else if (result.status.isErrored) {
-                openNotification(
-                    messages.CREATE_DAO_TITLE,
-                    messages.FAIL_CREATE_DAO,
-                    MESSAGE_TYPE.ERROR
-                )
-            }
-        }).catch((e) => {
-            console.log(e);
-            openNotification(
-                messages.CREATE_DAO_TITLE,
-                e.message,
-                MESSAGE_TYPE.ERROR
-            )
-        });
+        ];
+        
+        await executeTransaction(
+            daoFactoryContract,
+            "createDao",
+            args,
+            account,
+            messages.CREATE_DAO_TITLE,
+            messages.CREATE_DAO_SUCCESS,
+            messages.FAIL_CREATE_DAO
+        );
 
     } catch (e) {
         console.log(e);
@@ -107,7 +97,7 @@ export const createDao = async (account: WalletAccount | undefined) => {
 
 export const getDAOs = async () => {
     try {
-        await getSingletonApi();
+        await singletonDaoFactoryContract();
         let abiMessage = toContractAbiMessage(daoFactoryContract, "getDaos");
         if (!abiMessage.ok) {
             return;
@@ -117,7 +107,7 @@ export const getDAOs = async () => {
         if (result?.ok) {
             let daoAddresses = result.value.decoded;
 
-            let promisesCalls: Promise<DecodedContractResult<unknown> | undefined>[] = [];
+            let promisesCalls: Promise<DecodedContractResult<any[]> | undefined>[] = [];
             daoAddresses = daoAddresses.reverse();
             for (let i = 0; i < daoAddresses.length; i++) {
                 const daoContract = new ContractPromise(
@@ -135,16 +125,17 @@ export const getDAOs = async () => {
 
             let daoReqs = await Promise.all(promisesCalls);
 
-            let daoList: unknown[] = [];
+            let daoList: DaoDetail[] = [];
 
             for (let i = 0; i < daoReqs.length; i++) {
                 let daoInfo = daoReqs[i];
                 if (daoInfo?.ok) {
-                    daoList.push(daoInfo.value.decoded)
+                    let daoDetail = convertDaoDetailData(daoInfo.value.decoded);
+                    daoList.push({ ...daoDetail, contract_address: daoAddresses[i] });
                 }
             }
 
-            console.log(daoList);
+            store.dispatch(setDAOProps({ att: "daos", value: daoList }));
 
 
         } else {
@@ -152,8 +143,11 @@ export const getDAOs = async () => {
         }
 
 
+
     } catch (error) {
         console.log(error);
     }
+
+    store.dispatch(setDAOProps({ att: "isLoadingDAOs", value: false }));
 
 }
