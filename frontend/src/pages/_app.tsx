@@ -10,7 +10,6 @@ import withTheme from '@/theme';
 import { useEffect, useState } from 'react';
 import { UseInkProvider } from 'useink';
 import { AlephTestnet } from 'useink/chains';
-import { NotificationsProvider } from 'useink/notifications';
 
 Router.events.on("routeChangeStart", (url) => {
     NProgress.start()
@@ -53,17 +52,15 @@ export default function MyApp({ Component, pageProps }: AppProps) {
                     chains: [AlephTestnet],
                 }}
             >
-                <NotificationsProvider>
-                    <div style={{ visibility: !mounted ? 'hidden' : 'visible' }}>
-                        {
+                <div style={{ visibility: !mounted ? 'hidden' : 'visible' }}>
+                    {
 
-                            withTheme(<LayoutProvider>
-                                <Component {...pageProps} />
-                            </LayoutProvider>)
-                        }
+                        withTheme(<LayoutProvider>
+                            <Component {...pageProps} />
+                        </LayoutProvider>)
+                    }
 
-                    </div>
-                </NotificationsProvider>
+                </div>
             </UseInkProvider>
 
         </Provider >
