@@ -20,5 +20,6 @@ pub enum Error {
     ZeroFundAmount,
     ProgramIndexOutOfBound,
     ProgramHasNotStarted,
-    ProgramHasEnded
+    ProgramHasEnded,
+    ContributorExisted
 }

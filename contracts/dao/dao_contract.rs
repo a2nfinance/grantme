@@ -118,7 +118,9 @@ pub mod dao {
         // global_voting_quorum: u8,
         // global_voting_threshold: u8,
         // normal_members: Vec<AccountId>,
-        // status: bool
+        // open: bool,
+        // status: bool,
+        // allow_revoting: bool
         #[ink(message)]
         pub fn get_info(
             &self,
@@ -144,6 +146,7 @@ pub mod dao {
             u32,
             bool,
             bool,
+            bool
         ) {
             (
                 self.owner,
@@ -163,6 +166,7 @@ pub mod dao {
                 self.programs.len() as u32,
                 self.open,
                 self.status,
+                self.allow_revoting
             )
         }
 
@@ -405,7 +409,7 @@ pub mod dao {
                     let option_price: Option<(u64, u128)> = self.oracle.get_latest_price(proposal.cryto_fiat_key.clone());
                     let mut fetch_price_success = true;
                     match option_price {
-                        Some((_, price128)) => amount = (proposal.payment_amount_fiat as u128) * price128,
+                        Some((_, price128)) => amount = (proposal.payment_amount_fiat as u128) * price128 / 10**6,
                         None => fetch_price_success = false
                     }
                     if !fetch_price_success {
@@ -454,6 +458,34 @@ pub mod dao {
             }
             // Add normal member
             self.normal_members.retain(|&x| x != old_member);
+            Ok(())
+        }
+
+
+        #[ink(message)]
+        pub fn add_whitelisted_contributor(&mut self, new_contributor: AccountId) -> Result<(), Error> {
+            let caller = Self::env().caller();
+            if caller != self.admin {
+                return Err(Error::NotAdmin);
+            }
+            // Check contributor exist
+            if self.whitelisted_contributors.contains(&new_contributor) {
+                return Err(Error::ContributorExisted);
+            }
+            // Add contributor
+            self.whitelisted_contributors.push(new_contributor);
+
+            Ok(())
+        }
+
+        #[ink(message)]
+        pub fn remove_whitelisted_contributor(&mut self, old_member: AccountId) -> Result<(), Error> {
+            let caller = Self::env().caller();
+            if caller != self.admin {
+                return Err(Error::NotAdmin);
+            }
+            // remove contributor
+            self.whitelisted_contributors.retain(|&x| x != old_member);
             Ok(())
         }
 
@@ -583,6 +615,12 @@ pub mod dao {
         pub fn get_price(&self, key: String) -> Option<(u64, u128)> {
             self.oracle.get_latest_price(key)
         }
+
+        #[ink(message)]
+        pub fn get_whitelisted_contributors(&self) -> Vec<AccountId> {
+            self.whitelisted_contributors.clone()
+        }
+
         // Private functions
 
         fn _is_allow_executed(
