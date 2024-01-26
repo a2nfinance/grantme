@@ -20,6 +20,7 @@ export type DaoDetail = {
     num_programs: number,
     open: boolean,
     status: boolean
+    allow_revoting: boolean
 }
 
 export type Program = {
@@ -30,12 +31,37 @@ export type Program = {
     endDate: string,
 }
 
+export type Proposal = {
+    programIndex: number,
+    proposalIndex: number,
+    proposer: string,
+    title: string,
+    description: string,
+    startDate: string,
+    endDate: string,
+    useFiat: boolean,
+    paymentAmountFiat: number,
+    crytoFiatKey: string,
+    paymentEmountCrypto: string,
+    token: string,
+    to: string,
+    allowEarlyExecuted: boolean,
+    executed: boolean
+}
+
+export type VotingStatus = { agree: number, disagree: number, neutral: number };
 
 export type DaoDetailState = {
     detail: DaoDetail,
     members: string[],
     selectedProgram: Program,
-    programs: Program[]
+    programs: Program[],
+    programProposals: Proposal[],
+    contributors: string[],
+    balanceInUSD: string,
+    selectedProposal: Proposal,
+    stepMembers: (string[])[],
+    stepVotings: VotingStatus[]
 }
 
 const initialState: DaoDetailState = {
@@ -56,7 +82,8 @@ const initialState: DaoDetailState = {
         num_normal_members: 0,
         num_programs: 0,
         open: false,
-        status: true
+        status: true,
+        allow_revoting: false
     },
     members: [],
     selectedProgram: {
@@ -64,9 +91,31 @@ const initialState: DaoDetailState = {
         title: "",
         description: "",
         startDate: moment().toISOString(),
-        endDate:  moment().toISOString(),
+        endDate: moment().toISOString(),
     },
-    programs: []
+    programs: [],
+    programProposals: [],
+    contributors: [],
+    balanceInUSD: "N/A",
+    selectedProposal: {
+        programIndex: 0,
+        proposalIndex: 0,
+        proposer: "",
+        title: "",
+        description: "",
+        startDate: "",
+        endDate: "",
+        useFiat: true,
+        paymentAmountFiat: 0,
+        crytoFiatKey: "AZERO/USD",
+        paymentEmountCrypto: "",
+        token: "",
+        to: "",
+        allowEarlyExecuted: true,
+        executed: false
+    },
+    stepMembers: [],
+    stepVotings: []
 }
 
 export const daoDetailSlice = createSlice({

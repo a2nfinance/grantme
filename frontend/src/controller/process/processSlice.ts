@@ -4,10 +4,14 @@ import {
 } from "@reduxjs/toolkit";
 
 export const actionNames = {
+    loadDAODetailAction: "loadDAODetailAction",
     createDAOAction: "createDAOAction",
     fundDAOAction: "fundDAOAction",
     addContributorAction: "addContributorAction",
     removeContributorAction: "removeContributorAction",
+    createProgramAction: "createProgramAction",
+    newProposalAction: "newProposalAction",
+    votingAction: "votingAction"
 }
 
 
@@ -16,10 +20,14 @@ type Processes = {
 }
 
 const initialState: Processes = {
+    loadDAODetailAction: true,
     createDAOAction: false,
     fundDAOAction: false,
     addContributorAction: false,
     removeContributorAction: false,
+    createProgramAction: false,
+    newProposalAction: false,
+    votingAction: false
 }
 
 export const processesSlice = createSlice({
