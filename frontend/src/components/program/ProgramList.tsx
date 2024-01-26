@@ -28,7 +28,7 @@ export const ProgramList = () => {
     const handleNewProposal = useCallback((record, index) => {
         // open modal
         // set selected project
-        dispatch(setProps({ att: "selectedProject", value: { ...record, index } }))
+        dispatch(setProps({ att: "selectedProgram", value: { ...record, index } }))
         setOpenNewProposalModal(true);
     }, [])
 
@@ -36,8 +36,8 @@ export const ProgramList = () => {
         setOpenNewProposalModal(false);
     }
 
-    const handleOpenTaskList = useCallback((record, index) => {
-        dispatch(setProps({ att: "selectedProject", value: { ...record, index } }))
+    const handleOpenProposalList = useCallback((record, index) => {
+        dispatch(setProps({ att: "selectedProgram", value: { ...record, index } }))
         setOpenTaskListModal(true);
     }, [])
 
@@ -46,28 +46,13 @@ export const ProgramList = () => {
     }
 
     const handleViewDetail = useCallback((record, index) => {
-        // open modal
-        // set selected project
-        dispatch(setProps({ att: "selectedProject", value: { ...record, index } }))
+        dispatch(setProps({ att: "selectedProgram", value: { ...record, index } }))
         setOpenViewDetailModal(true);
     }, [])
 
     const handleCloseViewDetailModal = () => {
         setOpenViewDetailModal(false);
     }
-
-    const handleAddCodeReviewers = useCallback((record) => {
-        // open modal
-        // set selected project
-        dispatch(setProps({ att: "selectedProject", value: record }))
-    }, [])
-
-    const handleAddTaskManagers = useCallback((record) => {
-        // open modal
-        // set selected project
-        dispatch(setProps({ att: "selectedProject", value: record }))
-    }, [])
-
     useEffect(() => {
         if (router.query["address"]) {
             getPrograms(router.query["address"].toString())
@@ -102,15 +87,11 @@ export const ProgramList = () => {
             render: (_, record, index) => (
                 <Popover key={`popover-${index}`} content={
                     <Space direction="vertical">
-                        {/* <Button style={{ width: "100%" }} onClick={() => handleViewDetail(record, index)}>View detail</Button>
+                        <Button block onClick={() => handleViewDetail(record, index)}>View detail</Button>
                         <Divider />
-                        <Button style={{ width: "100%" }} onClick={() => handleNewTask(record, index)}>New task</Button>
-                        <Button style={{ width: "100%" }} onClick={() => handleOpenTaskList(record, index)}>View tasks</Button>
+                        <Button block onClick={() => handleNewProposal(record, index)}>New proposal</Button>
+                        <Button block onClick={() => handleOpenProposalList(record, index)}>View proposals</Button>
                         <Divider />
-                        <Button disabled={true} style={{ width: "100%" }}>Add task managers</Button>
-                        <Button disabled={true} style={{ width: "100%" }}>Add code reviewers</Button>
-                        <Button disabled={true} style={{ width: "100%" }}>Change status</Button>
-                        <Button disabled={true} style={{ width: "100%" }}>Update project</Button> */}
                     </Space>
                 }>
                     <Button type="primary">actions</Button>
@@ -132,12 +113,12 @@ export const ProgramList = () => {
                 <ViewDetail />
 
             </Modal>
-            <Modal width={500} title={"NEW TASK"} open={openNewProposalModal} onCancel={handleCloseNewProposalModal} footer={null} >
+            <Modal width={500} title={"NEW PROPOSAL"} open={openNewProposalModal} onCancel={handleCloseNewProposalModal} footer={null} >
                 <NewProposal />
 
             </Modal>
 
-            <Modal width={"100%"} title={"PROPOSALS"} open={openTaskListModal} onCancel={handleCloseTaskListModal} footer={null} >
+            <Modal width={920} title={"PROPOSALS"} open={openTaskListModal} onCancel={handleCloseTaskListModal} footer={null} >
                 <ViewProposals />
 
             </Modal>
