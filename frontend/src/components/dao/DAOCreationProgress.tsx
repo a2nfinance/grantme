@@ -11,8 +11,8 @@ export const DAOCreationProgress = () => {
                 current={currentStep}
                 items={[
                     {
-                        title: 'KYC',
-                        description: "General information and social networks"
+                        title: 'General information',
+                        description: "DAO basic information and social networks"
                     },
                     {
                         title: 'Voting settings',

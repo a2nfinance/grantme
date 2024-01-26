@@ -12,7 +12,7 @@ export const Steps = () => {
     const { stepsForm } = useAppSelector(state => state.daoForm)
     const dispatch = useAppDispatch();
     const [form] = Form.useForm();
-    const [useGlobalSettings, setUseGlobalSettings] = useState(true);
+    const [useGlobalSettings, setUseGlobalSettings] = useState(false);
     const onFinish = (values: any) => {
         dispatch(setDaoFormProps({ att: "stepsForm", value: values }))
         dispatch(setDaoFormProps({ att: "currentStep", value: 3 }))

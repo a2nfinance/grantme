@@ -34,7 +34,7 @@ export const Item = ({ index, dao }: {index: number, dao: DaoDetail}) => {
               ) : "N/A"}
           </Space>
         </Descriptions.Item>
-        <Descriptions.Item label={"Address"}><Button onClick={() => openLinkToExplorer(dao.address)}>{getShortAddress(dao.address)}</Button></Descriptions.Item>
+        <Descriptions.Item label={"Address"}>{getShortAddress(dao.address)}</Descriptions.Item>
       </Descriptions>
       <Divider />
       <Descriptions layout={"vertical"} style={{ minHeight: 100 }} column={1}>
