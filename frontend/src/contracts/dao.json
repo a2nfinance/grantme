@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0x3cb96016706e88bca42099ed54d21ad5d99e924868e18fae38c11fd306fb5ca9",
+    "hash": "0x2a9da43567705d95c60a924ac557cf19572505590b5b76bb492cadea935af5eb",
     "language": "ink! 4.3.0",
     "compiler": "rustc 1.77.0-nightly",
     "build_info": {
@@ -570,6 +570,58 @@
       {
         "args": [
           {
+            "label": "new_contributor",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "add_whitelisted_contributor",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 22
+        },
+        "selector": "0x0e0004c1"
+      },
+      {
+        "args": [
+          {
+            "label": "old_member",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "remove_whitelisted_contributor",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 22
+        },
+        "selector": "0x85222cc3"
+      },
+      {
+        "args": [
+          {
             "label": "step_index",
             "type": {
               "displayName": [
@@ -830,6 +882,32 @@
           "type": 40
         },
         "selector": "0xf23d4b6c"
+      },
+      {
+        "args": [
+          {
+            "label": "new_contributor",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "get_whitelisted_contributors",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 38
+        },
+        "selector": "0x8cc3019d"
       }
     ]
   },
@@ -1671,6 +1749,10 @@
               {
                 "index": 19,
                 "name": "ProgramHasEnded"
+              },
+              {
+                "index": 20,
+                "name": "ContributorExisted"
               }
             ]
           }

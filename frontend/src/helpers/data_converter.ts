@@ -1,4 +1,4 @@
-import { DaoDetail } from "@/controller/dao/daoDetailSlice"
+import { DaoDetail, VotingStatus } from "@/controller/dao/daoDetailSlice"
 
 export const convertDaoDetailData = (returnedValue: any[]) : DaoDetail => {
     let daoDetail: DaoDetail = {
@@ -18,8 +18,19 @@ export const convertDaoDetailData = (returnedValue: any[]) : DaoDetail => {
         num_normal_members: returnedValue[13],
         num_programs: returnedValue[14],
         open: returnedValue[15],
-        status: returnedValue[16]
-
+        status: returnedValue[16],
+        allow_revoting: returnedValue[17]
     }
     return daoDetail;
+}
+export const convertU64ToLocalTime = (timestamp: string): string => {
+    return new Date(parseInt(timestamp.replaceAll(",", ""))).toLocaleString()
+}
+
+export const convertVotingStatus = (votingStatus: VotingStatus) => {
+    return {
+        agree: parseInt(votingStatus.agree.toString()),
+        disagree: parseInt(votingStatus.disagree.toString()),
+        neutral: parseInt(votingStatus.neutral.toString()) 
+    }
 }

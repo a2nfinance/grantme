@@ -10,7 +10,8 @@ export const executeTransaction = async (
     messageTitle: string,
     successMessage: string,
     errorMessage: string,
-    callback?: Function
+    callback?: Function,
+    options?: any
 ) => {
 
     let abiMessage = toContractAbiMessage(contract, fnName);
@@ -31,7 +32,7 @@ export const executeTransaction = async (
     const { gasConsumed, gasRequired, storageDeposit } = resp.value.raw;
 
     await contract.tx[fnName](
-        { storageDepositLimit, gasLimit: gasRequired },
+        { storageDepositLimit, gasLimit: gasRequired, ...(options || {}) },
         ...args
     ).signAndSend(account.address, { signer: account.wallet?.extension?.signer }, result => {
         if (result.status.isFinalized) {

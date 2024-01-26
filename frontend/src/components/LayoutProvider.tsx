@@ -8,13 +8,8 @@ import {
 
 import { Button, Form, Image, Layout, Menu, Space, theme } from 'antd';
 import { useRouter } from 'next/router';
-import { AiOutlineAppstoreAdd, AiOutlineFileAdd } from "react-icons/ai";
-import { FaSuperscript } from "react-icons/fa";
-import { RiTaskLine } from "react-icons/ri";
-import { MdOutlineWaterDrop, MdOutlineWorkOutline, MdOutlineWorkHistory   } from "react-icons/md";
-import { GrGroup } from "react-icons/gr";
-import { BsPersonWorkspace } from "react-icons/bs";
 import React, { useState } from "react";
+import { FaSuperscript } from "react-icons/fa";
 import { WalletBar } from './common/WalletBar';
 const { Header, Sider, Content, Footer } = Layout;
 
@@ -56,20 +51,26 @@ export const LayoutProvider = (props: Props) => {
                             label: "All DAOs",
                             onClick: () => router.push("/dao/list")
                         },
+                        {
+                            key: '3',
+                            icon: <AppstoreOutlined />,
+                            label: "New DAO",
+                            onClick: () => router.push("/dao/new")
+                        },
                         { type: "divider" },
                         {
-                            key: "3",
+                            key: "4",
                             type: "group",
                             label: !collapsed ? 'GrantMe v0.0.1' : "",
                             children: [
                                 {
-                                    key: '3.1',
+                                    key: '4.1',
                                     icon: <FaSuperscript />,
                                     label: 'Twitter',
                                     onClick: () => window.open("https://twitter.com/GrantMeA2N", "_blank")
                                 },
                                 {
-                                    key: '3.2',
+                                    key: '4.2',
                                     icon: <GithubOutlined />,
                                     label: 'Github',
                                     onClick: () => window.open("https://github.com/a2nfinance/grantme", "_blank")
