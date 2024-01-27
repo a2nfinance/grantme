@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0x2a9da43567705d95c60a924ac557cf19572505590b5b76bb492cadea935af5eb",
+    "hash": "0xa0972993451ad4970b9a400eb92e0f0e101f70d0b99da5c7307c29e5562876cc",
     "language": "ink! 4.3.0",
     "compiler": "rustc 1.77.0-nightly",
     "build_info": {
@@ -210,13 +210,13 @@
         "displayName": [
           "ChainExtension"
         ],
-        "type": 44
+        "type": 45
       },
       "hash": {
         "displayName": [
           "Hash"
         ],
-        "type": 43
+        "type": 44
       },
       "maxEventTopics": 4,
       "timestamp": {
@@ -884,17 +884,7 @@
         "selector": "0xf23d4b6c"
       },
       {
-        "args": [
-          {
-            "label": "new_contributor",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          }
-        ],
+        "args": [],
         "default": false,
         "docs": [],
         "label": "get_whitelisted_contributors",
@@ -908,6 +898,50 @@
           "type": 38
         },
         "selector": "0x8cc3019d"
+      },
+      {
+        "args": [
+          {
+            "label": "member",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "label": "proposal_index",
+            "type": {
+              "displayName": [
+                "u32"
+              ],
+              "type": 12
+            }
+          },
+          {
+            "label": "step_index",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "get_member_voted",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 43
+        },
+        "selector": "0x9a08bbfb"
       }
     ]
   },
@@ -1827,6 +1861,7 @@
             12,
             12,
             7,
+            7,
             7
           ]
         }
@@ -2398,6 +2433,48 @@
       "id": 43,
       "type": {
         "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 2
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 21
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 2
+          },
+          {
+            "name": "E",
+            "type": 21
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 44,
+      "type": {
+        "def": {
           "composite": {
             "fields": [
               {
@@ -2415,7 +2492,7 @@
       }
     },
     {
-      "id": 44,
+      "id": 45,
       "type": {
         "def": {
           "variant": {}

@@ -1,29 +1,35 @@
 "use client";
-import { useWallet, useAllWallets } from 'useink';
+import { useAllWallets, useWallet } from 'useink';
 
-import { DisconnectOutlined } from "@ant-design/icons";
+import { CopyOutlined, DisconnectOutlined } from "@ant-design/icons";
 
-import { Button, Dropdown, Image, MenuProps, Space, message  } from "antd";
-import { useMemo } from "react";
+import { useAddress } from '@/hooks/useAddress';
+import { Button, Dropdown, Image, MenuProps, Space, message } from "antd";
 
 
 function WalletConnected() {
-  const { account, disconnect } = useWallet()
+  const { account, accounts, disconnect, setAccount } = useWallet()
+  const { getShortAddress } = useAddress();
   const [messageApi, contextHolder] = message.useMessage();
-
-
-
-  const shortenedAddress = useMemo(() => {
-    if (!account?.address) return "";
-    return `${account?.address.slice(0, 6)}...${account?.address.slice(-4)}`;
-  }, [account?.address]);
-
+  const items: MenuProps['items'] = accounts?.map(a => {
+    return {
+      key: a?.address,
+      label: <Button onClick={() => setAccount(a)} disabled={account === a} block>{a?.name ? a.name : getShortAddress(a?.address)}</Button>
+    }
+  })
   return (
     <Space>
       {contextHolder}
-      <Button 
-      // icon={<Image src={connector?.logo.src} preview={false} width={20} />} 
-      type="primary" size="large" onClick={() => { window.navigator.clipboard.writeText(account?.address || ""); messageApi.success("Copied address")}}>{shortenedAddress}</Button>
+      <Dropdown menu={{ items }} placement="bottomLeft">
+
+        <Button icon={<CopyOutlined onClick={
+          () => {
+            window.navigator.clipboard.writeText(account?.address || "");
+            messageApi.success("Copied address");
+          }
+        } />} type="primary" size="large">{account?.name ? account.name : getShortAddress(account?.address || "")}</Button>
+      </Dropdown>
+
       <Button size={"large"} icon={<DisconnectOutlined />} onClick={() => disconnect()}></Button>
     </Space>
   );
@@ -34,7 +40,7 @@ function ConnectWallet() {
   const wallets = useAllWallets();
 
   const items: MenuProps['items'] = wallets.map((connector) => {
-    if (typeof window !== "undefined" && connector?.installed ) {
+    if (typeof window !== "undefined" && connector?.installed) {
       return {
         key: connector.id,
         label: (
@@ -54,7 +60,7 @@ function ConnectWallet() {
         label: ""
       }
     }
-    
+
   })
   return (
     <div>

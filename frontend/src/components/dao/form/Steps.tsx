@@ -6,13 +6,12 @@ import { MinusCircleOutlined, PlusOutlined } from "@ant-design/icons";
 import { Button, Card, Col, Form, Input, Radio, Row, Space } from "antd"
 import { useState } from "react";
 import { AiOutlineWallet } from "react-icons/ai";
-import { GoSponsorTiers } from "react-icons/go";
 
 export const Steps = () => {
     const { stepsForm } = useAppSelector(state => state.daoForm)
     const dispatch = useAppDispatch();
     const [form] = Form.useForm();
-    const [useGlobalSettings, setUseGlobalSettings] = useState(false);
+    const [useGlobalSettings, setUseGlobalSettings] = useState<boolean[]>([true]);
     const onFinish = (values: any) => {
         dispatch(setDaoFormProps({ att: "stepsForm", value: values }))
         dispatch(setDaoFormProps({ att: "currentStep", value: 3 }))
@@ -59,11 +58,11 @@ export const Steps = () => {
                                         rules={[{ required: true, message: 'Missing voting settings' }]}>
                                         <Radio.Group options={[
                                             { label: "Yes", value: true },
-                                            { label: "No (only members)", value: false }
-                                        ]} onChange={(e) => setUseGlobalSettings(e.target.value)} />
+                                            { label: "No", value: false }
+                                        ]} onChange={(e) => {let settings = useGlobalSettings; settings[index] = e.target.value; setUseGlobalSettings(settings)}} />
                                     </Form.Item>
 
-                                    {!useGlobalSettings && <Row gutter={12}>
+                                    {!useGlobalSettings[index] && <Row gutter={12}>
                                         <Col span={12}>
                                             <Form.Item
                                                 {...restField}
@@ -97,7 +96,7 @@ export const Steps = () => {
                                                                 rules={[{ required: true, message: 'Missing address' }]}
                                                             >
 
-                                                                <Input key={`input-auto-${key}`} addonBefore={<AiOutlineWallet />} size="large" placeholder="Member address" />
+                                                                <Input addonBefore={<AiOutlineWallet />} size="large" placeholder="Member address" />
 
                                                             </Form.Item>
                                                         </Col>

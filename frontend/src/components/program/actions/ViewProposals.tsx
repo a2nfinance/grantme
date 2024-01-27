@@ -1,3 +1,4 @@
+import { AddressButton } from "@/components/common/AddressButton";
 import { useAppSelector } from "@/controller/hooks";
 import { getProgramProposals } from "@/core/dao";
 import { convertU64ToLocalTime } from "@/helpers/data_converter";
@@ -40,7 +41,7 @@ export const ViewProposals = () => {
             dataIndex: 'to',
             key: 'to',
             render: (_, record) => (
-                <Button>{getShortAddress(record.to)}</Button>
+                <AddressButton address={record.to} />
             )
         },
         {

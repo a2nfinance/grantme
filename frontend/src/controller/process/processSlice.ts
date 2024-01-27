@@ -12,7 +12,11 @@ export const actionNames = {
     createProgramAction: "createProgramAction",
     newProposalAction: "newProposalAction",
     votingAction: "votingAction",
-    executeAction: "executeAction"
+    executeAction: "executeAction",
+    addMemberAction: "addMemberAction",
+    removeMemberAction: "removeMemberAction",
+    addStepMemberAction: "addStepMemberAction",
+    removeStepMemberAction: "removeStepMemberAction",
 }
 
 
@@ -29,7 +33,11 @@ const initialState: Processes = {
     createProgramAction: false,
     newProposalAction: false,
     votingAction: false,
-    executeAction: false
+    executeAction: false,
+    addMemberAction: false,
+    addStepMemberAction: false,
+    removeMemberAction: false,
+    removeStepMemberAction: false
 }
 
 export const processesSlice = createSlice({

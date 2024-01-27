@@ -1,7 +1,8 @@
-import { List } from "antd";
-import { useEffect } from "react";
 import { useAppSelector } from "@/controller/hooks";
 import { getDAOs } from "@/core/dao_factory";
+import { List } from "antd";
+import { useEffect } from "react";
+import { CardListSkeleton } from "../common/CardListSkeleton";
 import { Item } from "./Item";
 
 export const RecentDAOList = () => {
@@ -9,6 +10,9 @@ export const RecentDAOList = () => {
     useEffect(() => {
         getDAOs()
     }, [])
+    if (isLoadingDAOs) {
+        return <CardListSkeleton />
+    }
     return (
         <List
             grid={{

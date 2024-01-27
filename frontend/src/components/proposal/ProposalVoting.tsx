@@ -1,10 +1,9 @@
 import { useAppSelector } from "@/controller/hooks"
-import { Alert, Badge, Button, Card, Collapse, Descriptions, Divider, Flex, Space } from "antd"
-import { useEffect } from "react"
-import { ThresholdSlider } from "./ThresholdSlider"
-import { QuorumSlider } from "./QuorumSlider"
-import { useWallet } from "useink"
 import { doVote, executeProposal, isAllowToExecute } from "@/core/dao"
+import { Alert, Badge, Button, Card, Collapse, Descriptions, Divider, Space } from "antd"
+import { useWallet } from "useink"
+import { QuorumSlider } from "./QuorumSlider"
+import { ThresholdSlider } from "./ThresholdSlider"
 
 export const ProposalVoting = () => {
     const { detail: dao, stepMembers, stepVotings, selectedProposal } = useAppSelector(state => state.daoDetail)
@@ -15,10 +14,13 @@ export const ProposalVoting = () => {
         <Card title={"Voting progress"}>
             <Space direction="vertical" style={{ width: "100%" }}>
                 {
-                    !selectedProposal.executed && (stepMembers.length > 0) && isAllowToExecute() && <Button type="primary" loading={executeAction} size="large" block onClick={() => executeProposal(account)}>Execute</Button>
+                    !selectedProposal.executed
+                    && (stepMembers.length > 0)
+                    && isAllowToExecute()
+                    && <Button type="primary" loading={executeAction} size="large" block onClick={() => executeProposal(account)}>Execute</Button>
                 }
                 {
-                    selectedProposal.executed && <Button type="primary" disabled={true} size="large">Executed Proposal</Button>
+                    selectedProposal.executed && <Button type="primary" block disabled={true} size="large">Executed Proposal</Button>
                 }
                 {
                     stepVotings.map((step, index) => {
@@ -77,16 +79,17 @@ export const ProposalVoting = () => {
                                         </Descriptions>
                                         <Divider />
                                         {
-                                            !isStepMember && <>
+                                            !selectedProposal.executed && !isStepMember && <>
                                                 <Alert message={"You are not a step member to vote"} type="warning" showIcon />
                                                 <Divider />
                                             </>
                                         }
-                                        <Space style={{ width: "100%" }} wrap>
+                                        {!selectedProposal.executed && <Space style={{ width: "100%" }} wrap>
                                             <Button disabled={!isStepMember} loading={votingAction} type="primary" onClick={() => doVote(account, index, 1)}>Aggree</Button>
                                             <Button disabled={!isStepMember} loading={votingAction} type="dashed" onClick={() => doVote(account, index, 2)}>Reject</Button>
                                             <Button disabled={!isStepMember} loading={votingAction} type="dashed" onClick={() => doVote(account, index, 3)}>Abstain</Button>
                                         </Space>
+                                        }
                                     </>
                                 }
                             ]}

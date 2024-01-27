@@ -8,7 +8,6 @@ import { GoOrganization } from "react-icons/go";
 
 export const Item = ({ index, dao }: {index: number, dao: DaoDetail}) => {
   const router = useRouter();
-  const { openLinkToExplorer, getShortAddress } = useAddress();
   const socialNetworks = [
     "Twitter",
     "Telegram",
@@ -34,7 +33,7 @@ export const Item = ({ index, dao }: {index: number, dao: DaoDetail}) => {
               ) : "N/A"}
           </Space>
         </Descriptions.Item>
-        <Descriptions.Item label={"Address"}>{getShortAddress(dao.address)}</Descriptions.Item>
+        <Descriptions.Item label={"Address"}>{dao.address}</Descriptions.Item>
       </Descriptions>
       <Divider />
       <Descriptions layout={"vertical"} style={{ minHeight: 100 }} column={1}>

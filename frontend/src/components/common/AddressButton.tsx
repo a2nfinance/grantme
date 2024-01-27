@@ -1,7 +1,8 @@
 import { useAddress } from "@/hooks/useAddress"
+import { CopyOutlined } from "@ant-design/icons";
 import { Button, message } from "antd"
 
-export const AddressButton = ({address}: {address: string}) => {
+export const AddressButton = ({ address }: { address: string }) => {
     const { getShortAddress } = useAddress();
     const [messageApi, contextHolder] = message.useMessage();
     return (

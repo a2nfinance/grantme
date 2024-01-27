@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import moment from 'moment';
 export type Step = {
-    step_index: number,
+    stepIndex: number,
     title: string,
     useDefaultSettings: boolean,
     quorum: number,
@@ -67,7 +67,8 @@ export type DaoDetailState = {
     balanceInUSD: string,
     selectedProposal: Proposal,
     stepMembers: (string[])[],
-    stepVotings: VotingStatus[]
+    stepVotings: VotingStatus[],
+    proposals: Proposal[]
 }
 
 const initialState: DaoDetailState = {
@@ -121,7 +122,8 @@ const initialState: DaoDetailState = {
         executed: false
     },
     stepMembers: [],
-    stepVotings: []
+    stepVotings: [],
+    proposals: []
 }
 
 export const daoDetailSlice = createSlice({
