@@ -509,3 +509,175 @@ export const addNewMember = async (account: WalletAccount | undefined, newMember
 }
 
 
+export const removeOldMember = async (account: WalletAccount | undefined, oldMember: string) => {
+    try {
+        if (!account?.address || !oldMember) {
+            return;
+        }
+
+        let { detail } = store.getState().daoDetail;
+
+        store.dispatch(updateActionStatus({ actionName: actionNames.removeMemberAction, value: true }));
+
+        await singletonDAOContract(detail.contract_address || "");
+
+        await executeTransaction(
+            daoContract,
+            "removeNormalMember",
+            [oldMember],
+            account,
+            messages.REMOVE_MEMBER_TITLE,
+            messages.REMOVE_MEMBER_SUCCESS,
+            messages.FAIL_TO_REMOVE_MEMBER,
+            () => getNormalMembers(detail.contract_address || ""),
+        )
+
+    } catch (e) {
+        console.log(e);
+        openNotification(
+            messages.REMOVE_MEMBER_TITLE,
+            e.message,
+            MESSAGE_TYPE.ERROR
+        )
+    }
+    store.dispatch(updateActionStatus({ actionName: actionNames.removeMemberAction, value: false }));
+}
+
+
+export const addNewContributor = async (account: WalletAccount | undefined, newContributor: string) => {
+    try {
+        if (!account?.address || !newContributor) {
+            return;
+        }
+
+        let { detail } = store.getState().daoDetail;
+
+        store.dispatch(updateActionStatus({ actionName: actionNames.addContributorAction, value: true }));
+
+        await singletonDAOContract(detail.contract_address || "");
+
+        await executeTransaction(
+            daoContract,
+            "addWhitelistedContributor",
+            [newContributor],
+            account,
+            messages.ADD_CONTRIBUTOR_TITLE,
+            messages.ADD_CONTRIBUTOR_SUCCESS,
+            messages.FAIL_TO_ADD_CONTRIBUTOR,
+            () => getWhitelistedContributors(),
+        )
+
+    } catch (e) {
+        console.log(e);
+        openNotification(
+            messages.ADD_CONTRIBUTOR_TITLE,
+            e.message,
+            MESSAGE_TYPE.ERROR
+        )
+    }
+    store.dispatch(updateActionStatus({ actionName: actionNames.addContributorAction, value: false }));
+}
+
+export const removeOldContributor = async (account: WalletAccount | undefined, oldContributor: string) => {
+    try {
+        if (!account?.address || !oldContributor) {
+            return;
+        }
+
+        let { detail } = store.getState().daoDetail;
+
+        store.dispatch(updateActionStatus({ actionName: actionNames.removeContributorAction, value: true }));
+
+        await singletonDAOContract(detail.contract_address || "");
+
+        await executeTransaction(
+            daoContract,
+            "removeWhitelistedContributor",
+            [oldContributor],
+            account,
+            messages.REMOVE_CONTRIBUTOR_TITLE,
+            messages.REMOVE_CONTRIBUTOR_SUCCESS,
+            messages.FAIL_TO_REMOVE_CONTRIBUTOR,
+            () => getWhitelistedContributors(),
+        )
+
+    } catch (e) {
+        console.log(e);
+        openNotification(
+            messages.REMOVE_CONTRIBUTOR_TITLE,
+            e.message,
+            MESSAGE_TYPE.ERROR
+        )
+    }
+    store.dispatch(updateActionStatus({ actionName: actionNames.removeContributorAction, value: false }));
+}
+
+
+export const addNewStepMember = async (account: WalletAccount | undefined, stepIndex: number, newStepMember: string) => {
+    try {
+        if (!account?.address || !newStepMember) {
+            return;
+        }
+
+        let { detail } = store.getState().daoDetail;
+
+        store.dispatch(updateActionStatus({ actionName: actionNames.addStepMemberAction, value: true }));
+
+        await singletonDAOContract(detail.contract_address || "");
+
+        await executeTransaction(
+            daoContract,
+            "addStepMembers",
+            [stepIndex, newStepMember],
+            account,
+            messages.ADD_STEP_MEMBER_TITLE,
+            messages.ADD_STEP_MEMBER_SUCCESS,
+            messages.FAIL_TO_ADD_STEP_MEMBER,
+            () => getStepMembers(detail.contract_address || ""),
+        )
+
+    } catch (e) {
+        console.log(e);
+        openNotification(
+            messages.ADD_STEP_MEMBER_TITLE,
+            e.message,
+            MESSAGE_TYPE.ERROR
+        )
+    }
+    store.dispatch(updateActionStatus({ actionName: actionNames.addStepMemberAction, value: false }));
+}
+
+export const removeStepMember = async (account: WalletAccount | undefined, stepIndex: number, oldStepMember: string) => {
+    try {
+        if (!account?.address || !oldStepMember) {
+            return;
+        }
+
+        let { detail } = store.getState().daoDetail;
+
+        store.dispatch(updateActionStatus({ actionName: actionNames.removeStepMemberAction, value: true }));
+
+        await singletonDAOContract(detail.contract_address || "");
+
+        await executeTransaction(
+            daoContract,
+            "removeStepMembers",
+            [stepIndex, oldStepMember],
+            account,
+            messages.REMOVE_STEP_MEMBER_TITLE,
+            messages.REMOVE_STEP_MEMBER_SUCCESS,
+            messages.FAIL_TO_REMOVE_STEP_MEMBER,
+            () => getStepMembers(detail.contract_address || ""),
+        )
+
+    } catch (e) {
+        console.log(e);
+        openNotification(
+            messages.REMOVE_STEP_MEMBER_TITLE,
+            e.message,
+            MESSAGE_TYPE.ERROR
+        )
+    }
+    store.dispatch(updateActionStatus({ actionName: actionNames.removeStepMemberAction, value: false }));
+}
+
