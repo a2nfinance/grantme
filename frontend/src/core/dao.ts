@@ -46,21 +46,26 @@ export const getDAODetail = async (daoAddress: string) => {
             store.dispatch(setDAODetail({ ...daoDetail, contract_address: daoAddress }));
         }
 
-        let getMemberMessage = toContractAbiMessage(daoContract, "getNormalMembers");
-        if (!getMemberMessage.ok) {
-            return;
-        }
+        getNormalMembers(daoAddress);
 
-        result = await call<string[]>(daoContract, getMemberMessage.value, "", []);
-        if (result?.ok) {
-            let members = result.value.decoded;
-            store.dispatch(setProps({ att: "members", value: members }));
-        }
     } catch (error) {
         console.log(error);
     }
 
     store.dispatch(updateActionStatus({ actionName: actionNames.loadDAODetailAction, value: false }));
+}
+
+export const getNormalMembers = async (daoAddress: string) => {
+    let getMemberMessage = toContractAbiMessage(daoContract, "getNormalMembers");
+    if (!getMemberMessage.ok) {
+        return;
+    }
+    await singletonDAOContract(daoAddress);
+    let result = await call<string[]>(daoContract, getMemberMessage.value, "", []);
+    if (result?.ok) {
+        let members = result.value.decoded;
+        store.dispatch(setProps({ att: "members", value: members }));
+    }
 }
 
 export const getPrograms = async (daoAddress: string) => {
@@ -171,9 +176,6 @@ export const newProposal = async (account: WalletAccount | undefined, formValues
     store.dispatch(updateActionStatus({ actionName: actionNames.newProposalAction, value: false }));
 }
 
-
-
-
 export const getProgramProposals = async () => {
     try {
         let { selectedProgram, detail } = store.getState().daoDetail;
@@ -193,7 +195,6 @@ export const getProgramProposals = async () => {
         console.log(error);
     }
 }
-
 
 export const getWhitelistedContributors = async () => {
     try {
@@ -473,6 +474,38 @@ export const executeProposal = async (account: WalletAccount | undefined) => {
     store.dispatch(updateActionStatus({ actionName: actionNames.executeAction, value: false }));
 }
 
+export const addNewMember = async (account: WalletAccount | undefined, newMember: string) => {
+    try {
+        if (!account?.address || !newMember) {
+            return;
+        }
 
+        let { detail } = store.getState().daoDetail;
+
+        store.dispatch(updateActionStatus({ actionName: actionNames.addMemberAction, value: true }));
+
+        await singletonDAOContract(detail.contract_address || "");
+
+        await executeTransaction(
+            daoContract,
+            "addNormalMember",
+            [newMember],
+            account,
+            messages.ADD_MEMBER_TITLE,
+            messages.ADD_MEMBER_SUCCESS,
+            messages.FAIL_TO_ADD_MEMBER,
+            () => getNormalMembers(detail.contract_address || ""),
+        )
+
+    } catch (e) {
+        console.log(e);
+        openNotification(
+            messages.ADD_MEMBER_TITLE,
+            e.message,
+            MESSAGE_TYPE.ERROR
+        )
+    }
+    store.dispatch(updateActionStatus({ actionName: actionNames.addMemberAction, value: false }));
+}
 
 
