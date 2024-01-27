@@ -1,7 +1,6 @@
 import { AddressButton } from "@/components/common/AddressButton";
 import { useAppSelector } from "@/controller/hooks";
-import { addNewMember, getWhitelistedContributors } from "@/core/dao";
-import { useAddress } from "@/hooks/useAddress";
+import { addNewMember, getWhitelistedContributors, removeOldMember } from "@/core/dao";
 import { Button, Divider, Input, Popover, Space, Table } from "antd";
 import { useCallback, useEffect, useState } from "react";
 import { useWallet } from "useink";
@@ -11,7 +10,7 @@ export const DaoMembers = () => {
     const { account } = useWallet();
 
     const [newMember, setNewMember] = useState<string>("");
-    const { addMemberAction } = useAppSelector(state => state.process);
+    const { addMemberAction, removeMemberAction } = useAppSelector(state => state.process);
 
     const columns = [
         {
@@ -28,7 +27,10 @@ export const DaoMembers = () => {
             title: 'Actions',
             key: 'actions',
             render: (_, record, index) => (
-                <Button key={`remove-${index}`}>Remove</Button>
+                <Button
+                    key={`remove-${index}`}
+                    loading={removeMemberAction}
+                    onClick={() => removeOldMember(account, record.address)}>Remove</Button>
 
             )
 

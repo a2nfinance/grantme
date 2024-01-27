@@ -1,6 +1,6 @@
-import { useAppSelector } from "@/controller/hooks"
-import { fundDAO, getWhitelistedContributors } from "@/core/dao";
-import { useAddress } from "@/hooks/useAddress";
+import { AddressButton } from "@/components/common/AddressButton";
+import { useAppSelector } from "@/controller/hooks";
+import { addNewContributor, addNewMember, fundDAO, getWhitelistedContributors, removeOldContributor } from "@/core/dao";
 import { Button, Divider, Input, Popover, Space, Table } from "antd";
 import { useCallback, useEffect, useState } from "react";
 import { useWallet } from "useink";
@@ -8,17 +8,16 @@ import { useWallet } from "useink";
 export const WhitelistedContributors = () => {
     const { contributors, detail } = useAppSelector(state => state.daoDetail);
     const { account } = useWallet();
-    const { getShortAddress } = useAddress();
     const [fundAmount, setFundAmount] = useState<number>(0);
-    const {fundDAOAction} = useAppSelector(state => state.process);
-
+    const { fundDAOAction, removeContributorAction, addContributorAction } = useAppSelector(state => state.process);
+    const [newContributor, setNewContributor] = useState<string>("");
     const columns = [
         {
             title: 'Address',
             dataIndex: 'address',
             key: 'address',
             render: (_, record) => (
-                <Button>{getShortAddress(record.address)}</Button>
+                <AddressButton address={record.address} />
             )
         },
 
@@ -27,18 +26,10 @@ export const WhitelistedContributors = () => {
             title: 'Actions',
             key: 'actions',
             render: (_, record, index) => (
-                // <Popover key={`popover-${index}`} content={
-                //     <Space direction="vertical">
-                //         <Button block onClick={() => handleViewDetail(record, index)}>View detail</Button>
-                //         <Divider />
-                //         <Button block onClick={() => handleNewProposal(record, index)}>New proposal</Button>
-                //         <Button block onClick={() => handleOpenProposalList(record, index)}>View proposals</Button>
-                //         <Divider />
-                //     </Space>
-                // }>
-                //     <Button type="primary">actions</Button>
-                // </Popover>
-                <></>
+                <Button
+                    key={`remove-${index}`}
+                    loading={removeContributorAction}
+                    onClick={() => removeOldContributor(account, record.address)}>Remove</Button>
             )
 
         },
@@ -47,6 +38,11 @@ export const WhitelistedContributors = () => {
     const handleSendFund = useCallback(() => {
         fundDAO(account, fundAmount);
     }, [fundAmount, account?.address])
+
+    const handleAddNewContributor = useCallback(() => {
+        addNewContributor(account, newContributor)
+    }, [newContributor, account?.address])
+
     useEffect(() => {
         getWhitelistedContributors();
     }, [])
@@ -56,12 +52,12 @@ export const WhitelistedContributors = () => {
             <Space>
                 <Popover content={
                     <Space>
-                        <Input type="number" size="large" placeholder="amount" onChange={(e) => setFundAmount(parseFloat(e.target.value))}/>
-                        <Button size="large" loading={fundDAOAction} disabled={account?.address !== detail.admin} onClick={() => handleSendFund()}>Send</Button>
+                        <Input type="number" size="large" placeholder="amount" onChange={(e) => setFundAmount(parseFloat(e.target.value))} />
+                        <Button size="large" loading={fundDAOAction} disabled={contributors.indexOf(account?.address || "") === -1} onClick={() => handleSendFund()}>Send</Button>
                     </Space>
                 }
-                    >
-                    <Button type="primary" loading={fundDAOAction} disabled={account?.address !== detail.admin}
+                >
+                    <Button type="primary" loading={fundDAOAction} disabled={contributors.indexOf(account?.address || "") === -1}
 
                     >
                         Fund</Button>
@@ -70,6 +66,22 @@ export const WhitelistedContributors = () => {
             </Space>
 
 
+            <Divider />
+            <Space>
+                <Popover content={
+                    <Space>
+                        <Input size="large" placeholder="address" onChange={(e) => setNewContributor(e.target.value)} />
+                        <Button size="large" loading={addContributorAction} disabled={account?.address !== detail.admin} onClick={() => handleAddNewContributor()}>Submit</Button>
+                    </Space>
+                }
+                >
+                    <Button type="primary" loading={addContributorAction} disabled={account?.address !== detail.admin}
+
+                    >
+                        New contributor</Button>
+                </Popover>
+                <span> Only DAO admin can add new contributors!</span>
+            </Space>
             <Divider />
             <Table
                 pagination={false}

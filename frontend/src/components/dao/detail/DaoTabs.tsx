@@ -2,6 +2,8 @@ import { ProgramList } from '@/components/program/ProgramList';
 import type { TabsProps } from 'antd';
 import { Tabs } from 'antd';
 import { WhitelistedContributors } from './WhitelistedContributors';
+import { DaoMembers } from './DaoMembers';
+import { DaoSteps } from './DaoSteps';
 
 
 
@@ -16,19 +18,20 @@ export const DaoTabs = () => {
         },
         {
             key: '2',
-            label: `Proposals`,
-            children: <></>
+            label: `Steps`,
+            children: <DaoSteps />
         },
         {
             key: '3',
-            label: `Steps`,
-            children: <></>
+            label: `Whitelisted Contributors`,
+            children: <WhitelistedContributors />
         },
         {
             key: '4',
-            label: `Whitelisted Contributors`,
-            children: <WhitelistedContributors />
-        }
+            label: `Members`,
+            children: <DaoMembers />
+        },
+
     ];
 
     return (
