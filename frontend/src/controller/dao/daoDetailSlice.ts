@@ -1,6 +1,12 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import moment from 'moment';
-
+export type Step = {
+    step_index: number,
+    title: string,
+    useDefaultSettings: boolean,
+    quorum: number,
+    threshold: number,
+}
 export type DaoDetail = {
     contract_address?: string,
     owner: string,
@@ -11,7 +17,7 @@ export type DaoDetail = {
     email: string,
     address: string,
     social_accounts: string[],
-    steps: any[],
+    steps: Step[],
     num_proposals: number,
     num_whitelisted_contributors: number,
     global_voting_quorum: number,
