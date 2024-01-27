@@ -5,7 +5,7 @@ import {
     MenuFoldOutlined,
     MenuUnfoldOutlined
 } from '@ant-design/icons';
-
+import { SlOrganization } from "react-icons/sl";
 import { Button, Form, Image, Layout, Menu, Space, theme } from 'antd';
 import { useRouter } from 'next/router';
 import React, { useState } from "react";
@@ -53,7 +53,7 @@ export const LayoutProvider = (props: Props) => {
                         },
                         {
                             key: '3',
-                            icon: <AppstoreOutlined />,
+                            icon: <SlOrganization />,
                             label: "New DAO",
                             onClick: () => router.push("/dao/new")
                         },

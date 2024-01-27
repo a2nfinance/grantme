@@ -93,10 +93,10 @@ export const Steps = () => {
                                                                 label={`Member (${index + 1})`}
                                                                 {...restField}
                                                                 name={[name, 'address']}
-                                                                rules={[{ required: true, message: 'Missing address' }]}
+                                                                rules={[{ required: true, message: 'Missing address' }, accountAddressValid]}
                                                             >
 
-                                                                <Input addonBefore={<AiOutlineWallet />} size="large" placeholder="Member address" />
+                                                                <Input addonBefore={<AiOutlineWallet />} size="large" placeholder="Member address"   />
 
                                                             </Form.Item>
                                                         </Col>
