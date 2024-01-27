@@ -1,5 +1,5 @@
 import daoMetadata from "@/contracts/dao.json";
-import { VotingStatus, setDAODetail, setProps } from "@/controller/dao/daoDetailSlice";
+import { DaoDetail, Step, VotingStatus, setDAODetail, setProps } from "@/controller/dao/daoDetailSlice";
 import { actionNames, updateActionStatus } from "@/controller/process/processSlice";
 import { store } from "@/controller/store";
 import { convertDaoDetailData, convertVotingStatus } from "@/helpers/data_converter";
@@ -205,7 +205,7 @@ export const getWhitelistedContributors = async () => {
             return;
         }
 
-        let result = await call<any[]>(daoContract, daoAbiMessage.value, "", [0]);
+        let result = await call<any[]>(daoContract, daoAbiMessage.value, "", []);
         if (result?.ok) {
             let contributors = result.value.decoded;
             store.dispatch(setProps({ att: "contributors", value: contributors }));
@@ -387,7 +387,7 @@ export const doVote = async (account: WalletAccount | undefined, stepIndex: numb
         let { detail, selectedProposal } = store.getState().daoDetail;
 
         store.dispatch(updateActionStatus({ actionName: actionNames.votingAction, value: true }));
-        
+
         await singletonDAOContract(detail.contract_address || "");
 
         await executeTransaction(
@@ -413,10 +413,64 @@ export const doVote = async (account: WalletAccount | undefined, stepIndex: numb
 }
 
 
-export const isAllowToExecute = (votingStatus: VotingStatus, numMembers: number, threshold: number, quorum: number) => {
-    votingStatus = convertVotingStatus(votingStatus);
-    return ((votingStatus.agree + votingStatus.disagree + votingStatus.neutral) * 100 / numMembers) >= quorum
-    &&  (votingStatus.agree * 100 / (votingStatus.agree + votingStatus.disagree + votingStatus.neutral)) >= threshold
+export const isAllowToExecute = () => {
+    let { stepMembers, stepVotings, detail: daoDetail } = store.getState().daoDetail;
+
+    let allow = true;
+    let quorum = daoDetail.global_voting_quorum;
+    let threshold = daoDetail.global_voting_threshold;
+
+    for (let i = 0; i < stepVotings.length; i++) {
+        let numMembers = stepMembers[i].length;
+        let step = daoDetail.steps[i];
+        if (!step.useDefaultSettings) {
+            quorum = step.quorum;
+            threshold = step.threshold;
+        }
+        let votingStatus = convertVotingStatus(stepVotings[i]);
+        let acceptedQuorum = ((votingStatus.agree + votingStatus.disagree + votingStatus.neutral) * 100 / numMembers) >= quorum;
+        let acceptedThreshold = (votingStatus.agree * 100 / (votingStatus.agree + votingStatus.disagree + votingStatus.neutral)) >= threshold;
+        if (!acceptedQuorum || !acceptedThreshold) {
+            allow = false;
+            break;
+        }
+    }
+    return allow;
+
+}
+
+export const executeProposal = async (account: WalletAccount | undefined) => {
+    try {
+        if (!account?.address) {
+            return;
+        }
+
+        let { detail, selectedProposal } = store.getState().daoDetail;
+
+        store.dispatch(updateActionStatus({ actionName: actionNames.executeAction, value: true }));
+
+        await singletonDAOContract(detail.contract_address || "");
+
+        await executeTransaction(
+            daoContract,
+            "executeProposal",
+            [selectedProposal.proposalIndex],
+            account,
+            messages.EXECUTE_PROPOSAL_TITLE,
+            messages.EXECUTE_PROPOSAL_SUCCESS,
+            messages.FAIL_TO_EXECUTE,
+            () => getDaoProposalDetail(detail.contract_address || "", selectedProposal.proposalIndex),
+        )
+
+    } catch (e) {
+        console.log(e);
+        openNotification(
+            messages.EXECUTE_PROPOSAL_TITLE,
+            e.message,
+            MESSAGE_TYPE.ERROR
+        )
+    }
+    store.dispatch(updateActionStatus({ actionName: actionNames.executeAction, value: false }));
 }
 
 

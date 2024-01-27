@@ -72,7 +72,7 @@ export const createDao = async (account: WalletAccount | undefined) => {
             memberForm.open,
             votingSettingsForm.allow_revoting
         ];
-        
+
         await executeTransaction(
             daoFactoryContract,
             "createDao",
@@ -130,8 +130,11 @@ export const getDAOs = async () => {
             for (let i = 0; i < daoReqs.length; i++) {
                 let daoInfo = daoReqs[i];
                 if (daoInfo?.ok) {
+
                     let daoDetail = convertDaoDetailData(daoInfo.value.decoded);
                     daoList.push({ ...daoDetail, contract_address: daoAddresses[i] });
+
+
                 }
             }
 

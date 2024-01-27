@@ -28,13 +28,23 @@ export const executeTransaction = async (
     );
 
     if (!resp || !resp.ok) return;
+    let respDecoded: any = resp.value.decoded;
 
+    if (respDecoded.Err) {
+        openNotification(
+            messageTitle,
+            "ERROR: " + respDecoded.Err,
+            MESSAGE_TYPE.ERROR
+        )
+        return;
+    }
     const { gasConsumed, gasRequired, storageDeposit } = resp.value.raw;
 
     await contract.tx[fnName](
         { storageDepositLimit, gasLimit: gasRequired, ...(options || {}) },
         ...args
     ).signAndSend(account.address, { signer: account.wallet?.extension?.signer }, result => {
+        console.log(result);
         if (result.status.isFinalized) {
             openNotification(
                 messageTitle,
@@ -42,13 +52,7 @@ export const executeTransaction = async (
                 MESSAGE_TYPE.SUCCESS
             );
             callback?.();
-        } else if (result.status.isErrored) {
-            openNotification(
-                messageTitle,
-                errorMessage,
-                MESSAGE_TYPE.ERROR
-            )
-        }
+        } 
     }).catch((e) => {
         console.log(e);
         openNotification(
