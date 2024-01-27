@@ -280,9 +280,10 @@ pub mod dao {
                 return Err(Error::IncorrectVotingOption);
             }
             let num_proposals: u32 = self.proposals.len() as u32;
-            if proposal_index > num_proposals {
+            if proposal_index >= num_proposals {
                 return Err(Error::ProposalIndexOutOfBound);
             }
+
             // Check voting previlege
             // Must be step member
             if !self._is_allow_vote(step, Self::env().caller()) {
@@ -290,6 +291,11 @@ pub mod dao {
             }
             // Check time contraint
             let proposal: &Proposal = &self.proposals[proposal_index as usize];
+
+            if proposal.executed {
+                return Err(Error::ProposalHasExecuted);
+            }
+
             if proposal.start_date > Self::env().block_timestamp() {
                 return Err(Error::VotingHasNotStarted);
             }
@@ -355,7 +361,7 @@ pub mod dao {
         pub fn execute_proposal(&mut self, proposal_index: u32) -> Result<(), Error> {
             // Check index
             let num_proposals: u32 = self.proposals.len() as u32;
-            if proposal_index > num_proposals {
+            if proposal_index >= num_proposals {
                 return Err(Error::ProposalIndexOutOfBound);
             }
 
@@ -409,12 +415,17 @@ pub mod dao {
                     let option_price: Option<(u64, u128)> = self.oracle.get_latest_price(proposal.cryto_fiat_key.clone());
                     let mut fetch_price_success = true;
                     match option_price {
-                        Some((_, price128)) => amount = (proposal.payment_amount_fiat as u128) * price128 / 10**6,
+                        Some((_, price128)) => amount = (proposal.payment_amount_fiat as u128) * price128,
                         None => fetch_price_success = false
                     }
+                    
                     if !fetch_price_success {
                         return Err(Error::CouldNotGetOraclePrice);
                     }
+                    // TZERO & AZERO have decimals is 12
+                    // price128 has decimals is 18
+                    // Correct token amoun need a division 10^6
+                    amount = amount / 10_u128.pow(6);
                 } else {
                     amount = proposal.payment_amount_crypto;
                 }
@@ -534,7 +545,7 @@ pub mod dao {
         #[ink(message)]
         pub fn get_proposal(&self, proposal_index: u32) -> Option<Proposal> {
             let num_proposals: u32 = self.proposals.len() as u32;
-            if num_proposals < proposal_index {
+            if num_proposals <= proposal_index {
                 return None;
             } 
             let proposal = &self.proposals[proposal_index as usize];
@@ -544,7 +555,7 @@ pub mod dao {
         #[ink(message)]
         pub fn get_program(&self, program_index: u32) -> Option<Program> {
             let num_programs: u32 = self.programs.len() as u32;
-            if num_programs < program_index {
+            if num_programs <= program_index {
                 return None;
             } 
             let program = &self.programs[program_index as usize];
@@ -559,7 +570,7 @@ pub mod dao {
         #[ink(message)]
         pub fn get_program_proposals(&self, program_index: u32) -> Option<Vec<Proposal>> {
             let num_programs: u32 = self.programs.len() as u32;
-            if num_programs < program_index {
+            if num_programs <= program_index {
                 return None;
             } 
             let proposal_indexes: &Vec<u32> = &self.program_to_proposals[program_index as usize];
@@ -619,6 +630,45 @@ pub mod dao {
         #[ink(message)]
         pub fn get_whitelisted_contributors(&self) -> Vec<AccountId> {
             self.whitelisted_contributors.clone()
+        }
+
+        #[ink(message)]
+        pub fn get_member_voted(&self, member: AccountId, proposal_index: u32, step_index: u8) -> u8 {
+            let voted_value: u8 = self
+            .member_voted
+            .get((member, proposal_index, step_index))
+            .unwrap_or_default();
+            voted_value
+        }
+
+        #[ink(message)]
+        pub fn get_proposal_payment_amount_from_oracle(&self, proposal_index: u32) -> Result<(u128, u128, u128), Error> {
+            let num_proposals: u32 = self.proposals.len() as u32;
+            if proposal_index >= num_proposals {
+                return Err(Error::ProposalIndexOutOfBound);
+            }
+            
+            let proposal = &self.proposals[proposal_index as usize];
+            if !proposal.use_fiat {
+                return Ok((0, 0,0))
+            }
+
+            let mut amount: u128 = 0;
+            let option_price: Option<(u64, u128)> = self.oracle.get_latest_price(proposal.cryto_fiat_key.clone());
+            let mut fetch_price_success = true;
+            match option_price {
+                Some((_, price128)) => amount = (proposal.payment_amount_fiat as u128) * price128,
+                None => fetch_price_success = false
+            }
+            
+            if !fetch_price_success {
+                return Err(Error::CouldNotGetOraclePrice);
+            }
+
+            let correct_amount = amount / 10_u128.pow(6);
+
+            Ok((amount, correct_amount, self.env().balance()))
+
         }
 
         // Private functions
@@ -848,11 +898,11 @@ pub mod dao {
                         threshold: 0,
                     },
                 ],
-                vec![vec![step1_member], vec![step2_member]],
-                vec![whitelisted_contributor],
+                vec![vec![&ink_e2e::alice().address()], vec![&ink_e2e::alice().address()]],
+                vec![&ink_e2e::alice().address()],
                 100,
                 100,
-                vec![normal_member],
+                vec![&ink_e2e::alice().address()],
                 false,
                 false,
             );
@@ -899,6 +949,16 @@ pub mod dao {
                 .expect("Value is None")
                 .1;
             assert_eq!(latest_price, PRICE);
+            // Test execute proposal
+
+            // let create_program_message =
+            // build_message::<DaoRef>(dao_contract_acc_id.clone())
+            //     .call(|dao| dao.create_program(
+            //         "Program",
+            //         "Program description",
+            //         0,
+            //         1000^2
+            //     ));
 
             Ok(())
         }

@@ -29,3 +29,8 @@ std = [
 ]
 ink-as-dependency = []
 e2e-tests = []
+
+[profile.release]
+# Bugs: https://github.com/rust-lang/rust/issues/78744
+overflow-checks = false
+

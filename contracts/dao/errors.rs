@@ -21,5 +21,6 @@ pub enum Error {
     ProgramIndexOutOfBound,
     ProgramHasNotStarted,
     ProgramHasEnded,
-    ContributorExisted
+    ContributorExisted,
+    ProposalHasExecuted
 }
