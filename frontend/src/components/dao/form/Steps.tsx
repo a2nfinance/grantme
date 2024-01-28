@@ -59,7 +59,7 @@ export const Steps = () => {
                                         <Radio.Group options={[
                                             { label: "Yes", value: true },
                                             { label: "No", value: false }
-                                        ]} onChange={(e) => {let settings = useGlobalSettings; settings[index] = e.target.value; setUseGlobalSettings(settings)}} />
+                                        ]} onChange={(e) => {let settings = useGlobalSettings; settings[index] = e.target.value; setUseGlobalSettings({...settings})}} />
                                     </Form.Item>
 
                                     {!useGlobalSettings[index] && <Row gutter={12}>
