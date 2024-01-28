@@ -24,7 +24,8 @@ export const executeTransaction = async (
         contract,
         abiMessage.value,
         account.address,
-        args
+        args,
+        {...(options || {})}
     );
 
     if (!resp || !resp.ok) return;
@@ -44,7 +45,6 @@ export const executeTransaction = async (
         { storageDepositLimit, gasLimit: gasRequired, ...(options || {}) },
         ...args
     ).signAndSend(account.address, { signer: account.wallet?.extension?.signer }, result => {
-        console.log(result);
         if (result.status.isFinalized) {
             openNotification(
                 messageTitle,

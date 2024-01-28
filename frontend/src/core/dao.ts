@@ -227,7 +227,7 @@ export const fundDAO = async (account: WalletAccount | undefined, fundAmount: nu
 
         store.dispatch(updateActionStatus({ actionName: actionNames.fundDAOAction, value: true }));
         await singletonDAOContract(detail.contract_address || "");
-
+        
         await executeTransaction(
             daoContract,
             "fund",
