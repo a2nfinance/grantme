@@ -408,26 +408,32 @@ pub mod dao {
 
             // Executed here
             if allow_executed {
-                let mut amount: u128 = 0;
+                let mut amount: u128 = proposal.payment_amount_crypto;
                 // Transfer token
                 if proposal.use_fiat {
                     // Diadata here
                     let option_price: Option<(u64, u128)> = self.oracle.get_latest_price(proposal.cryto_fiat_key.clone());
                     let mut fetch_price_success = true;
+                    let mut latest_price: u128 = 0;
                     match option_price {
-                        Some((_, price128)) => amount = (proposal.payment_amount_fiat as u128) * price128,
+                        Some((_, price128)) => latest_price = price128,
                         None => fetch_price_success = false
                     }
                     
                     if !fetch_price_success {
                         return Err(Error::CouldNotGetOraclePrice);
                     }
+                    // Formula: tzero_amount = payment_amount_fiat * 10^18 * 10^12 / latest_price 
+                    // To avoid overflow using: tzero_amount = payment_amount * 10^18 / (latest_price/10^12)
                     // TZERO & AZERO have decimals is 12
                     // price128 has decimals is 18
-                    // Correct token amoun need a division 10^6
-                    amount = amount / 10_u128.pow(6);
-                } else {
-                    amount = proposal.payment_amount_crypto;
+                    amount = (proposal.payment_amount_fiat as u128).checked_mul(10_u128.pow(18)).unwrap_or_default();
+                    latest_price = latest_price.checked_div(10_u128.pow(12)).unwrap_or_default();
+                    amount = amount.checked_div(latest_price).unwrap_or_default();
+                    // Need to check again later.
+                    if amount == 0 {
+                        return Err(Error::ZeroSendingAmount);
+                    }
                 }
                 // Check balance
                 if self.env().balance() < amount {
@@ -665,7 +671,7 @@ pub mod dao {
                 return Err(Error::CouldNotGetOraclePrice);
             }
 
-            let correct_amount = amount / 10_u128.pow(6);
+            let correct_amount = amount.checked_div(10_u128.pow(6)).unwrap_or_default();
 
             Ok((amount, correct_amount, self.env().balance()))
 
@@ -715,22 +721,32 @@ pub mod dao {
     mod tests {
         /// Imports all the definitions from the outer scope so we can use them here.
         use super::*;
-        /// We test a simple use case of our contract.
-        #[ink::test]
-        fn it_works() {
+        use ink::env::{
+            test::{set_caller}
+        };
+
+        fn get_mock_accounts() -> (AccountId, AccountId, AccountId, AccountId, AccountId, AccountId) {
             let admin_acc = AccountId::from([0x01; 32]);
             let step1_member = AccountId::from([0x02; 32]);
             let step2_member = AccountId::from([0x03; 32]);
             let whitelisted_contributor = AccountId::from([0x04; 32]);
             let normal_member = AccountId::from([0x05; 32]);
+            let oracle_contract = AccountId::from([0x00; 32]);
+            (admin_acc, step1_member, step2_member, whitelisted_contributor, normal_member, oracle_contract)
+        }
+
+        fn get_mock_proposal_params() -> (AccountId, AccountId) {
             let token = AccountId::from([0x06; 32]);
             let recipient = AccountId::from([0x07; 32]);
-            let oracle_contract = AccountId::from([0x01; 32]);
+            (token, recipient)
+        }
 
-            // init DAO
-            let mut dao = Dao::new(
-                oracle_contract,
-                admin_acc,
+
+        fn init_dao() -> Dao {
+            let mock_accounts = get_mock_accounts();
+            let dao = Dao::new(
+                mock_accounts.5,
+                mock_accounts.0,
                 "Name".to_string(),
                 "Description".to_string(),
                 "Website".to_string(),
@@ -753,27 +769,77 @@ pub mod dao {
                         threshold: 0,
                     },
                 ],
-                vec![vec![step1_member], vec![step2_member]],
-                vec![whitelisted_contributor],
+                vec![vec![mock_accounts.1], vec![mock_accounts.2]],
+                vec![mock_accounts.3],
                 100,
                 100,
-                vec![normal_member],
+                vec![mock_accounts.4],
                 false,
                 false,
             );
+            dao
+        }
 
-            ink::env::test::set_caller::<Environment>(admin_acc);
+        #[ink::test]
+        fn test_init_dao() {
+            let dao = init_dao();
+            let info = dao.get_info();
+            assert_eq!(info.2, "Name".to_string());
+            assert_eq!(info.8.len(), 2);
+        }
 
+        #[ink::test]
+        fn test_create_program_success() {
+            let mut dao = init_dao();
+            let mock_accounts = get_mock_accounts();
+            set_caller::<Environment>(mock_accounts.0);
             let _ = dao.create_program(
                 "Program Title".to_string(),
                 "Program Description".to_string(),
                 0,
                 1000 * 1000
             );
-            
 
-            // Created proposal
-            ink::env::test::set_caller::<Environment>(normal_member);
+            let program = dao.get_program(0);
+            assert!(program.is_some(), "Fail to create new program");
+        }
+
+        #[ink::test]
+        fn test_create_program_fail() {
+            let mut dao = init_dao();
+            let mock_accounts = get_mock_accounts();
+            set_caller::<Environment>(mock_accounts.1);
+
+            let result: Result<(), Error> = dao.create_program(
+                "Program Title".to_string(),
+                "Program Description".to_string(),
+                0,
+                1000 * 1000
+            );
+
+            assert!(result.is_err(), "Only admin can create programs");
+        }
+        
+        #[ink::test] 
+        fn test_create_proposal() {
+            let mut dao = init_dao();
+            let mock_param = get_mock_proposal_params();
+            let mock_accounts = get_mock_accounts();
+            set_caller::<Environment>(mock_accounts.0);
+            // Create program
+            let _ = dao.create_program(
+                "Program Title".to_string(),
+                "Program Description".to_string(),
+                0,
+                1000 * 1000
+            );
+
+            let program = dao.get_program(0);
+            assert!(program.is_some(), "Fail to create new program");
+
+            // Create proposal
+
+            set_caller::<Environment>(mock_accounts.4);
             let result: Result<(), Error> = dao.create_proposal(
                 0,
                 "Title".to_string(),
@@ -784,59 +850,77 @@ pub mod dao {
                 0,
                 "AZERO/USD".to_string(),
                 200,
-                token,
-                recipient,
-                true,
+                mock_param.0,
+                mock_param.1,
+                true
             );
 
-            let mut success: bool = false;
-            let mut error: String = "".to_string();
-            match result {
-                Ok(()) => success = true,
-                Err(Error::NotANormalMember) => error = "NotANormalMember".to_string(),
-                _ => ()
-            }
+            assert!(result.is_ok(), "Fail to create proposal");
 
-            let dao_info =
-                dao.get_info();
-            // Admin account id
-            assert_eq!(dao_info.1, admin_acc);
-            // Name
-            assert_eq!(dao_info.2, "Name".to_string());
-            // num of normal members
-            assert_eq!(dao_info.13, 1);
-            // num of programs
-            assert_eq!(dao_info.14, 1);
+        }
 
-            if success {
-                assert_eq!(dao_info.9, 1);
-            } else {
-                assert!(false, "{}", error);
-            }
+        #[ink::test]
+        fn test_voting_and_execute_proposal() {
+            let mut dao = init_dao();
+            let mock_param = get_mock_proposal_params();
+            let mock_accounts = get_mock_accounts();
+            set_caller::<Environment>(mock_accounts.0);
+            // Create program
+            let _ = dao.create_program(
+                "Program Title".to_string(),
+                "Program Description".to_string(),
+                0,
+                1000 * 1000
+            );
 
-            // Voting
+            let program = dao.get_program(0);
+            assert!(program.is_some(), "Fail to create new program");
 
-            //// Step 0: member voting
-            ink::env::test::set_caller::<Environment>(step1_member);
-            //// proposal index, step, value
+            // Create proposal
+
+            set_caller::<Environment>(mock_accounts.4);
+            let result: Result<(), Error> = dao.create_proposal(
+                0,
+                "Title".to_string(),
+                "Description".to_string(),
+                0,
+                1000 * 1000,
+                false,
+                0,
+                "AZERO/USD".to_string(),
+                200,
+                mock_param.0,
+                mock_param.1,
+                true
+            );
+
+            assert!(result.is_ok(), "Fail to create proposal");
+
+
+            // Step 0: member voting
+            set_caller::<Environment>(mock_accounts.1);
             let _ = dao.voting(0, 0, 1);
             let proposal_votings: Vec<ProposalVoting> = dao.get_steps_voting_status(0);
             assert_eq!(proposal_votings[0].agree, 1);
-            //// Step 1: member voting
-            ink::env::test::set_caller::<Environment>(step2_member);
-            //// proposal index, step, value
+
+            // Step 1: member voting
+            set_caller::<Environment>(mock_accounts.2);
             let _ = dao.voting(0, 1, 1);
             let proposal_votings: Vec<ProposalVoting> = dao.get_steps_voting_status(0);
             assert_eq!(proposal_votings[1].agree, 1);
+
             let previous_balance = dao.get_contract_balance();
-            // executed proposal
+
+            // execute proposal
             let _ = dao.execute_proposal(0);
+
+            // Check balance after execution
             let after_balance = dao.get_contract_balance();
             let proposal = dao.get_proposal(0);
             assert_eq!(proposal.is_some(), true);
             assert_eq!(proposal.unwrap().executed, true);
             assert_eq!(previous_balance - after_balance, 200)
-        }
+        } 
     }
 
 
@@ -871,8 +955,7 @@ pub mod dao {
                 .expect("instantiate failed")
                 .account_id;
 
-            //init Oracle Example contract
-
+            //init DAO
             let dao_contructor = DaoRef::new(
                 contract_acc_id,
                 admin_acc,
@@ -949,17 +1032,6 @@ pub mod dao {
                 .expect("Value is None")
                 .1;
             assert_eq!(latest_price, PRICE);
-            // Test execute proposal
-
-            // let create_program_message =
-            // build_message::<DaoRef>(dao_contract_acc_id.clone())
-            //     .call(|dao| dao.create_program(
-            //         "Program",
-            //         "Program description",
-            //         0,
-            //         1000^2
-            //     ));
-
             Ok(())
         }
     }

@@ -16,6 +16,7 @@ pub enum Error {
     StepMemberExisted,
     CouldNotGetOraclePrice,
     NotEnoughBalance,
+    ZeroSendingAmount,
     NotWhitelistedContributor,
     ZeroFundAmount,
     ProgramIndexOutOfBound,
