@@ -1,4 +1,5 @@
 import { useAppSelector } from "@/controller/hooks";
+import { convertU64ToLocalTime } from "@/helpers/data_converter";
 import { Descriptions } from "antd";
 
 export const ViewDetail = () => {
@@ -10,16 +11,16 @@ export const ViewDetail = () => {
                 <Descriptions.Item label={"Title"}>
                     {selectedProgram.title}
                 </Descriptions.Item>
-                <Descriptions.Item label={"Short description"}>
+                <Descriptions.Item label={"Description"}>
                     {selectedProgram.description}
                 </Descriptions.Item>
             </Descriptions>
             <Descriptions layout="vertical" column={2}>
                 <Descriptions.Item label={"Start date"}>
-                    {new Date(parseInt(selectedProgram.start_date.toString()) * 1000).toLocaleString()}
+                    {convertU64ToLocalTime(selectedProgram.startDate)}
                 </Descriptions.Item>
                 <Descriptions.Item label={"End date"}>
-                    {new Date(parseInt(selectedProgram.end_date.toString()) * 1000).toLocaleString()}
+                    {convertU64ToLocalTime(selectedProgram.endDate)}
                 </Descriptions.Item>
             </Descriptions>
 

@@ -5,21 +5,27 @@ import { DetailItem } from "@/components/dao/detail/DetailItem";
 import { useAppSelector } from "@/controller/hooks";
 import { getDAODetail } from "@/core/dao";
 import { Col, Row } from "antd";
+import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 export default function DAODetail() {
     const {loadDAODetailAction} = useAppSelector(state => state.process);
     const router = useRouter();
     useEffect(() => {
-        if (router.query["address"]) {
-            getDAODetail(router.query["address"].toString());
+        let contractAddress = router.query["address"];
+        if (contractAddress) {
+            getDAODetail(contractAddress.toString());
         }
-    }, [router.query["address"]])
+    }, [router.query])
     if (loadDAODetailAction) {
         return <DAOSkeleton />
     }
     return (
-        <Row gutter={16}>
+        <>
+        <Head>
+                <title>DAO details</title>
+            </Head>
+            <Row gutter={16}>
             <Col span={8}>
                 <DetailItem />
             </Col>
@@ -28,5 +34,7 @@ export default function DAODetail() {
                 <DaoTabs />
             </Col>
         </Row>
+        </>
+       
     )
 }

@@ -10,8 +10,8 @@ import { MESSAGE_TYPE, openNotification } from "@/utils/noti";
 import { ApiPromise, ContractPromise, DecodedContractResult, WalletAccount, WsProvider, call, toContractAbiMessage } from "useink/core";
 import { executeTransaction } from "./do_transaction";
 
-let api = null;
-let daoFactoryContract: ContractPromise = null;
+let api;
+let daoFactoryContract: ContractPromise;
 
 const singletonDaoFactoryContract = async () => {
     if (!api) {

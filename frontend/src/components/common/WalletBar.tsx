@@ -40,12 +40,13 @@ function ConnectWallet() {
   const wallets = useAllWallets();
 
   const items: MenuProps['items'] = wallets.map((connector) => {
-    if (typeof window !== "undefined" && connector?.installed) {
+    if (typeof window !== "undefined") {
       return {
         key: connector.id,
         label: (
           <Button
-            icon={<Image src={connector?.logo.src} preview={false} width={20} />}
+            disabled={!connector?.installed}
+            icon={<Image alt={connector.extensionName} src={connector?.logo.src} preview={false} width={20} />}
             key={`btt-${connector.id}`}
             onClick={() => connect(connector.extensionName)}
             className="gap-x-2 mr-2"
@@ -57,7 +58,7 @@ function ConnectWallet() {
     } else {
       return {
         key: "no-wallet",
-        label: ""
+        label: "no installed wallet"
       }
     }
 

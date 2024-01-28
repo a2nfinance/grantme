@@ -15,7 +15,7 @@ export const DaoSteps = () => {
 
     const handleAddNewStepMember = useCallback(() => {
         addNewStepMember(account, stepIndex, newStepMember)
-    }, [newStepMember, account?.address])
+    }, [newStepMember, account, stepIndex])
 
     useEffect(() => {
         if (dao.contract_address) {
@@ -66,7 +66,7 @@ export const DaoSteps = () => {
                                     key: index,
                                     children: <>
                                         <Descriptions column={1}>
-                                            <Descriptions.Item label="Use global settings">
+                                            <Descriptions.Item label="Use global voting settings">
                                                 {step.useDefaultSettings ? "Yes" : "No"}
                                             </Descriptions.Item>
 

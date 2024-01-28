@@ -5,6 +5,7 @@ import { getDaoProposalDetail } from "@/core/dao";
 import { convertU64ToLocalTime } from "@/helpers/data_converter";
 import { useAddress } from "@/hooks/useAddress";
 import { Button, Card, Col, Descriptions, Divider, Row } from "antd";
+import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 
@@ -13,12 +14,18 @@ export default function ProposalDetail() {
     const { getShortAddress } = useAddress();
     const router = useRouter();
     useEffect(() => {
-        if (router.query["dao_address"] && router.query["proposal_index"]) {
-            getDaoProposalDetail(router.query["dao_address"].toString(), parseInt(router.query["proposal_index"].toString()));
+        let contractAddress = router.query["dao_address"];
+        let proposalIndex = router.query["proposal_index"];
+        if (contractAddress && proposalIndex) {
+            getDaoProposalDetail(contractAddress.toString(), parseInt(proposalIndex.toString()));
         }
-    }, [router.query["dao_address"], router.query["proposal_index"]])
+    }, [router.query])
     return (
-        <Row style={{ maxWidth: 1020 }} gutter={8}>
+        <>
+            <Head>
+                <title>Proposal: {selectedProposal.title}</title>
+            </Head>
+            <Row style={{ maxWidth: 1020 }} gutter={8}>
             <Col span={14}>
                 <Card title={"Proposal Information"}>
                     <Descriptions column={2} layout="vertical">
@@ -86,5 +93,7 @@ export default function ProposalDetail() {
             </Col>
 
         </Row>
+        </>
+        
     )
 }

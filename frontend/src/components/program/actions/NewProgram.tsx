@@ -12,7 +12,7 @@ export const NewProgram = () => {
     const { createProgramAction } = useAppSelector(state => state.process);
     const onFinish = useCallback((values: FormData) => {
         createProgram(account, values);
-    }, [account?.address])
+    }, [account])
     return (
         <>
             <Space>

@@ -4,7 +4,6 @@ export default function Document() {
     return (
         <Html lang='en'>
             <Head>
-                <title>Grantme</title>
                 <meta name="title" content="Grantme" />
                 <meta name="description" content="Grantme"/>
                 <link rel="icon" type="image/x-icon" href="/favicon.ico" />

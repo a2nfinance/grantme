@@ -16,48 +16,47 @@ import { convertU64ToLocalTime } from "@/helpers/data_converter";
 export const ProgramList = () => {
     const { programs } = useAppSelector(state => state.daoDetail);
     const dispatch = useAppDispatch();
-    const { account } = useWallet();
     const router = useRouter();
-    const { getShortAddress, openLinkToExplorer } = useAddress();
 
     const [openNewProposalModal, setOpenNewProposalModal] = useState(false);
     const [openTaskListModal, setOpenTaskListModal] = useState(false);
     const [openViewDetailModal, setOpenViewDetailModal] = useState(false);
 
 
-    const handleNewProposal = useCallback((record, index) => {
+    const handleNewProposal = useCallback((record) => {
         // open modal
         // set selected project
-        dispatch(setProps({ att: "selectedProgram", value: { ...record, index } }))
+        dispatch(setProps({ att: "selectedProgram", value: record }))
         setOpenNewProposalModal(true);
-    }, [])
+    }, [dispatch])
 
     const handleCloseNewProposalModal = () => {
         setOpenNewProposalModal(false);
     }
 
-    const handleOpenProposalList = useCallback((record, index) => {
-        dispatch(setProps({ att: "selectedProgram", value: { ...record, index } }))
+    const handleOpenProposalList = useCallback((record) => {
+        dispatch(setProps({ att: "selectedProgram", value: record }))
         setOpenTaskListModal(true);
-    }, [])
+    }, [dispatch])
 
     const handleCloseTaskListModal = () => {
         setOpenTaskListModal(false);
     }
 
-    const handleViewDetail = useCallback((record, index) => {
-        dispatch(setProps({ att: "selectedProgram", value: { ...record, index } }))
+    const handleViewDetail = useCallback((record) => {
+        dispatch(setProps({ att: "selectedProgram", value: record }))
         setOpenViewDetailModal(true);
-    }, [])
+    }, [dispatch])
 
     const handleCloseViewDetailModal = () => {
         setOpenViewDetailModal(false);
     }
     useEffect(() => {
-        if (router.query["address"]) {
-            getPrograms(router.query["address"].toString())
+        let contractAddress = router.query["address"];
+        if (contractAddress) {
+            getPrograms(contractAddress.toString())
         }
-    }, [router.query["address"]])
+    }, [router.query])
     const columns = [
         {
             title: 'Title',
@@ -87,10 +86,10 @@ export const ProgramList = () => {
             render: (_, record, index) => (
                 <Popover key={`popover-${index}`} content={
                     <Space direction="vertical">
-                        <Button block onClick={() => handleViewDetail(record, index)}>View detail</Button>
+                        <Button block onClick={() => handleViewDetail(record)}>View detail</Button>
                         <Divider />
-                        <Button block onClick={() => handleNewProposal(record, index)}>New proposal</Button>
-                        <Button block onClick={() => handleOpenProposalList(record, index)}>View proposals</Button>
+                        <Button block onClick={() => handleNewProposal(record)}>New proposal</Button>
+                        <Button block onClick={() => handleOpenProposalList(record)}>View proposals</Button>
                         <Divider />
                     </Space>
                 }>

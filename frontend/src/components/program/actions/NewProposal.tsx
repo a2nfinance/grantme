@@ -16,7 +16,7 @@ export const NewProposal = () => {
         console.log(values);
         // newTask(values, account);
         newProposal(account, values);
-    }, [account?.address])
+    }, [account])
 
     return (
         <Form name="newtask" initialValues={{

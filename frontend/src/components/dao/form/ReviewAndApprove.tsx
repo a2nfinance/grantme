@@ -76,7 +76,7 @@ export const ReviewAndApprove = () => {
 
                         stepsForm.steps.map((step, index) => {
                             return (
-                                <Card title={`Step (${index})`}>
+                                <Card key={`step-${index}`} title={`Step (${index})`}>
                                     <Descriptions column={2}  layout="vertical">
                                         <Descriptions.Item label={"Title"}>
                                             {step.title}

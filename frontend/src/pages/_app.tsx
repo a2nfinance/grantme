@@ -49,7 +49,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
             <UseInkProvider
                 config={{
                     dappName: 'GrantMe',
-                    chains: [AlephTestnet],
+                    chains: [AlephTestnet]
                 }}
             >
                 <div style={{ visibility: !mounted ? 'hidden' : 'visible' }}>

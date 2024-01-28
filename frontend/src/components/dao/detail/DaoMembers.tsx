@@ -39,7 +39,7 @@ export const DaoMembers = () => {
 
     const handleAddNewMember = useCallback(() => {
         addNewMember(account, newMember)
-    }, [newMember, account?.address])
+    }, [newMember, account])
     useEffect(() => {
         getWhitelistedContributors();
     }, [])

@@ -3,11 +3,15 @@ import { WhitelistedContributors, General, Members, VotingSettings, Steps } from
 import { ReviewAndApprove } from "@/components/dao/form/ReviewAndApprove";
 import { useAppSelector } from "@/controller/hooks";
 import { Col, Row, Space } from "antd";
+import Head from "next/head";
 
 export default function NewDAO() {
     const { currentStep } = useAppSelector(state => state.daoForm);
     return (
         <div style={{ maxWidth: 1440, minWidth: 900, margin: "auto" }}>
+             <Head>
+                <title>New DAO</title>
+            </Head>
             <Row gutter={10}>
                 <Col span={14}>
 

@@ -8,8 +8,8 @@ import { MESSAGE_TYPE, openNotification } from "@/utils/noti";
 import { ApiPromise, ContractPromise, WalletAccount, WsProvider, call, toContractAbiMessage } from "useink/core";
 import { executeTransaction } from "./do_transaction";
 
-let api = null;
-let daoContract: ContractPromise = null;
+let api;
+let daoContract: ContractPromise;
 let previousAdress = "";
 const singletonDAOContract = async (daoAddress: string) => {
     if (daoAddress) {

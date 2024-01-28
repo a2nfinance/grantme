@@ -37,11 +37,11 @@ export const WhitelistedContributors = () => {
 
     const handleSendFund = useCallback(() => {
         fundDAO(account, fundAmount);
-    }, [fundAmount, account?.address])
+    }, [fundAmount, account])
 
     const handleAddNewContributor = useCallback(() => {
         addNewContributor(account, newContributor)
-    }, [newContributor, account?.address])
+    }, [newContributor, account])
 
     useEffect(() => {
         getWhitelistedContributors();
