@@ -26,7 +26,7 @@ export const DaoStatistic = () => {
       <Col span={4}>
         <Statistic title="Contributors" value={dao.num_whitelisted_contributors} />
       </Col>
-      <Col span={6}>
+      <Col span={8}>
         <Statistic title="Balance (TZERO-USD)" value={balanceInUSD} />
       </Col>
     </Row>
