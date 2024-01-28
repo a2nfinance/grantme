@@ -39,7 +39,7 @@ export const VotingSettings = () => {
                         </Form.Item>
                     </Col>
                 </Row>
-                <Form.Item help={"Proposals can not early execute if a DAO allows revoting."} name={"allow_revoting"} label={"Allow revoting"}>
+                <Form.Item help={"Enable revoting allows people to revote; however, every proposal needs to wait until the voting time has ended to be executed and cannot be executed early."} name={"allow_revoting"} label={"Allow revoting"}>
                     <Radio.Group options={[
                         { label: "Yes", value: true },
                         { label: "No", value: false }

@@ -46,7 +46,7 @@ export const NewProposal = () => {
                 ]} onChange={(e) => setUseFiat(e.target.value)} />
             </Form.Item>
             {
-                useFiat && <Form.Item help={"Grantme uses DIA Oracle to ensure the funding amount is equal USD amount"} label="Fiat amount" name={"payment_amount_fiat"} rules={[{ required: true }]}>
+                useFiat && <Form.Item help={"Grantme uses DIA Oracle to ensure the funding amount is equal to the USD amount."} label="Fiat amount" name={"payment_amount_fiat"} rules={[{ required: true }]}>
                     <Input size="large" type="number" addonAfter={"USD"} />
                 </Form.Item>
             }

@@ -41,7 +41,7 @@ export default function ProposalDetail() {
                         <Descriptions.Item label={"End date"}>
                             {convertU64ToLocalTime(selectedProposal.endDate)}
                         </Descriptions.Item>
-                        <Descriptions.Item label={"Fiat-based funding token amount"}>
+                        <Descriptions.Item label={"Amount will be calculated in fiat"}>
                             {selectedProposal.useFiat ? "Yes" : "No"}
                         </Descriptions.Item>
                         {

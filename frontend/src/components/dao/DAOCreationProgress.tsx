@@ -16,23 +16,22 @@ export const DAOCreationProgress = () => {
                     },
                     {
                         title: 'Voting settings',
-                        description: "Defind voting settings"
+                        description: "Define options such as global quorum, global threshold, and revoting."
                     },
                     {
                         title: 'Workflow Steps',
-                        description: "A proposal will be reviewed in all steps."
+                        description: "A proposal needs reviews and voting at all steps."
                     },
                     {
                         title: 'Whitelisted contributors',
-                        description: "Who can fund your DAO"
+                        description: "Who can fund your DAO with TZERO tokens."
                     },
                     {
                         title: 'Members',
-                        description: "Who can create proposals"
+                        description: "If your DAO is not open, a member is the only one who can create proposals."
                     },
                     {
                         title: 'Review & Submit',
-                        //description: "DAO is initialized with settings"
                     },
                 ]}
             />
