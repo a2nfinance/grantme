@@ -203,19 +203,46 @@ mod dao_factory {
         /// Imports all the definitions from the outer scope so we can use them here.
         use super::*;
 
-        #[ink::test]
-        fn test_new_constructor() {
+        fn get_mock_accounts() -> (AccountId, AccountId) {
             let owner: AccountId = AccountId::from([0x01; 32]);
             let oracle_address: AccountId = AccountId::from([0x02; 32]);
-            let dao_code_hash: Hash = Hash::from([0x03; 32]);
-            let new_dao_code_hash: Hash = Hash::from([0x04; 32]);
+            (owner, oracle_address)
+        }
 
-            let mut dao_factory: DaoFactory = DaoFactory::new(owner, oracle_address, dao_code_hash);
-            assert_eq!(dao_factory.get_dao_hash(), dao_code_hash);
+        fn init_dao_factory() -> DaoFactory {
+            let dao_code_hash: Hash = Hash::from([0x03; 32]);
+            let mock_accounts = get_mock_accounts();
+            let dao_factory: DaoFactory = DaoFactory::new(mock_accounts.0, mock_accounts.1, dao_code_hash);
+            dao_factory
+        }
+
+        #[ink::test]
+        fn test_init() {
+            let dao_code_hash: Hash = Hash::from([0x03; 32]);
+            let dao_factory = init_dao_factory();
+            let dao_hash = dao_factory.get_dao_hash();
+            assert_eq!(dao_code_hash, dao_hash);
+        }
+
+        #[ink::test]
+        fn test_update_dao_hash() {
+          
+            let new_dao_code_hash: Hash = Hash::from([0x04; 32]);
+            let mut dao_factory = init_dao_factory();
             let update_dao_code_hash: Result<(), DaoFactoryError> =
                 dao_factory.update_dao_code_hash(new_dao_code_hash);
-
             assert_eq!(update_dao_code_hash.is_ok(), true);
+
+        }
+
+        #[ink::test]
+        fn test_add_whitelisted_creator() {
+            let new_creator: AccountId = AccountId::from([0x03; 32]);
+            let mut dao_factory = init_dao_factory();
+            let add_creator: Result<(), DaoFactoryError> =
+                dao_factory.add_whitelisted_creator(new_creator);
+            assert_eq!(add_creator.is_ok(), true);
+            
         }
     }
 
