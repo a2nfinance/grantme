@@ -941,8 +941,6 @@ pub mod dao {
             let step2_member = AccountId::from([0x03; 32]);
             let whitelisted_contributor = AccountId::from([0x04; 32]);
             let normal_member = AccountId::from([0x05; 32]);
-            let token = AccountId::from([0x06; 32]);
-            let recipient = AccountId::from([0x07; 32]);
             
             // init Oracle contract
             // AZERO/USD - 2024/23/01
@@ -981,11 +979,11 @@ pub mod dao {
                         threshold: 0,
                     },
                 ],
-                vec![vec![&ink_e2e::alice().address()], vec![&ink_e2e::alice().address()]],
-                vec![&ink_e2e::alice().address()],
+                vec![vec![step1_member], vec![step2_member]],
+                vec![whitelisted_contributor],
                 100,
                 100,
-                vec![&ink_e2e::alice().address()],
+                vec![normal_member],
                 false,
                 false,
             );
