@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0xa0972993451ad4970b9a400eb92e0f0e101f70d0b99da5c7307c29e5562876cc",
+    "hash": "0xc5bbd0ccee9bc397232f3a2d044417b23da01d6dbdfcefd86c677c64bf55fb05",
     "language": "ink! 4.3.0",
     "compiler": "rustc 1.77.0-nightly",
     "build_info": {
@@ -171,9 +171,7 @@
           }
         ],
         "default": false,
-        "docs": [
-          "Constructor that initializes the `bool` value to the given `init_value`."
-        ],
+        "docs": [],
         "label": "new",
         "payable": false,
         "returnType": {
@@ -210,13 +208,13 @@
         "displayName": [
           "ChainExtension"
         ],
-        "type": 45
+        "type": 48
       },
       "hash": {
         "displayName": [
           "Hash"
         ],
-        "type": 44
+        "type": 47
       },
       "maxEventTopics": 4,
       "timestamp": {
@@ -942,6 +940,32 @@
           "type": 43
         },
         "selector": "0x9a08bbfb"
+      },
+      {
+        "args": [
+          {
+            "label": "proposal_index",
+            "type": {
+              "displayName": [
+                "u32"
+              ],
+              "type": 12
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "get_proposal_payment_amount_from_oracle",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 44
+        },
+        "selector": "0xb85a3d7a"
       }
     ]
   },
@@ -1766,27 +1790,35 @@
               },
               {
                 "index": 15,
-                "name": "NotWhitelistedContributor"
+                "name": "ZeroSendingAmount"
               },
               {
                 "index": 16,
-                "name": "ZeroFundAmount"
+                "name": "NotWhitelistedContributor"
               },
               {
                 "index": 17,
-                "name": "ProgramIndexOutOfBound"
+                "name": "ZeroFundAmount"
               },
               {
                 "index": 18,
-                "name": "ProgramHasNotStarted"
+                "name": "ProgramIndexOutOfBound"
               },
               {
                 "index": 19,
-                "name": "ProgramHasEnded"
+                "name": "ProgramHasNotStarted"
               },
               {
                 "index": 20,
+                "name": "ProgramHasEnded"
+              },
+              {
+                "index": 21,
                 "name": "ContributorExisted"
+              },
+              {
+                "index": 22,
+                "name": "ProposalHasExecuted"
               }
             ]
           }
@@ -2475,6 +2507,101 @@
       "id": 44,
       "type": {
         "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 45
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 21
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 45
+          },
+          {
+            "name": "E",
+            "type": 21
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 45,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 46
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 24
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 46
+          },
+          {
+            "name": "E",
+            "type": 24
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 46,
+      "type": {
+        "def": {
+          "tuple": [
+            14,
+            14
+          ]
+        }
+      }
+    },
+    {
+      "id": 47,
+      "type": {
+        "def": {
           "composite": {
             "fields": [
               {
@@ -2492,7 +2619,7 @@
       }
     },
     {
-      "id": 45,
+      "id": 48,
       "type": {
         "def": {
           "variant": {}

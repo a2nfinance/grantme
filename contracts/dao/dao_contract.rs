@@ -377,7 +377,7 @@ pub mod dao {
                     }
 
                     if voted_value == 3 {
-                        voting_status.abstain -= 1;
+                        voting_status.neutral -= 1;
                     }
 
                     self.member_voted
@@ -399,7 +399,7 @@ pub mod dao {
             }
 
             if value == 3 {
-                voting_status.abstain += 1;
+                voting_status.neutral += 1;
             }
 
             // Update proposal voting status
@@ -713,7 +713,7 @@ pub mod dao {
         }
 
         #[ink(message)]
-        pub fn get_proposal_payment_amount_from_oracle(&self, proposal_index: u32) -> Result<(u128, u128, u128), Error> {
+        pub fn get_proposal_payment_amount_from_oracle(&self, proposal_index: u32) -> Result<(u128, u128), Error> {
             let num_proposals: u32 = self.proposals.len() as u32;
             if proposal_index >= num_proposals {
                 return Err(Error::ProposalIndexOutOfBound);
@@ -721,10 +721,9 @@ pub mod dao {
             
             let proposal = &self.proposals[proposal_index as usize];
             if !proposal.use_fiat {
-                return Ok((0, 0,0))
+                return Ok((0, 0))
             }
-
-            let mut amount: u128 = proposal.payment_amount_crypto;
+            
             let option_price: Option<(u64, u128)> = self.oracle.get_latest_price(proposal.cryto_fiat_key.clone());
             let mut fetch_price_success = true;
             let mut latest_price: u128 = 0;
@@ -737,12 +736,12 @@ pub mod dao {
                 return Err(Error::CouldNotGetOraclePrice);
             }
 
-            amount = (proposal.payment_amount_fiat as u128).checked_mul(10_u128.pow(18)).unwrap_or_default();
+            let mut amount: u128 = (proposal.payment_amount_fiat as u128).checked_mul(10_u128.pow(18)).unwrap_or_default();
             latest_price = latest_price.checked_div(10_u128.pow(12)).unwrap_or_default();
-            amount = amount.checked_div(latest_price).unwrap_or_default()
+            amount = amount.checked_div(latest_price).unwrap_or_default();
 
 
-            Ok((amount, correct_amount, self.env().balance()))
+            Ok((amount, self.env().balance()))
 
         }
 
