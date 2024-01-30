@@ -1,10 +1,16 @@
 ## Introduction
 Grant me is a DAO-based platform for local government funding programs with procedural steps for various administration groups.
 
+## Demo information
+- [Frontend Application](https://grantme.a2n.finance)
+- [Video demo](https://www.youtube.com/watch?v=zrCKjRusJmo)
+
+
+For more detailed information on product features, you can refer to [our project description on TaiKai.](https://taikai.network/alephzero/hackathons/CTRL-Hack-ZK/projects/clrpxejbo05k4vn01hzl9xdv7/idea)
+
 ## Key ideas
 The core concept of GrantMe is to empower organizations to establish DAOs without the need for coding skills, offering a flexible step-by-step process. This mechanism is designed to adapt seamlessly to various types of workflows.
 
-For more detailed information on product features, you can refer to [our project description on TaiKai.](https://taikai.network/alephzero/hackathons/CTRL-Hack-ZK/projects/clrpxejbo05k4vn01hzl9xdv7/idea)
 
 ## Architecture
 ![](system_architect.jpg)
