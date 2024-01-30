@@ -10,15 +10,19 @@ mod dao_factory {
 
     #[ink(storage)]
     pub struct DaoFactory {
+        // DAOFactory owner
         owner: AccountId,
+        // Oracle address
         oracle_address: AccountId,
+        // List of DAOs
         daos: Vec<AccountId>,
+        // DAO code hash
         dao_code_hash: Hash,
         // Only whitelisted creators can create DAO when Open is false
         whitelisted_creators: Vec<AccountId>,
         // Num of creators' DAOs
         num_creator_daos: Mapping<AccountId, u8>,
-        // How many DAOs a creator can create 
+        // Limited number of DAOs a creator can create 
         limited_number: u8,
         // True: anyone can create new DAO, False: Only whitelisted creators
         open: bool,
@@ -79,13 +83,13 @@ mod dao_factory {
                     return Err(DaoFactoryError::NotInWhitelistedCreators);
                 }
             }
-
+            // Check limited number of created DAOs
             let num_creator_daos: u8 = self.num_creator_daos.get(caller).unwrap_or_default();
             if num_creator_daos >= 5 {
                 return Err(DaoFactoryError::ExceedLimitedDAONumber);
             }
 
-
+            // Initial new DAO
             let dao_ref = DaoRef::new(
                 self.oracle_address,
                 Self::env().caller(),
@@ -120,6 +124,8 @@ mod dao_factory {
 
             let dao_address =
                 <DaoRef as ToAccountId<super::dao_factory::Environment>>::to_account_id(&dao_ref);
+
+            // Update storage.
             self.daos.push(dao_address);
             self.num_creator_daos.insert(caller, &(num_creator_daos + 1));
             Ok(dao_address)
@@ -130,10 +136,12 @@ mod dao_factory {
             &mut self,
             new_dao_code_hash: Hash,
         ) -> Result<(), DaoFactoryError> {
+            // Check the owner previlege
             if Self::env().caller() != self.owner {
                 return Err(DaoFactoryError::NotOwner);
             }
 
+            // Compare the DAO code hash
             if new_dao_code_hash == self.dao_code_hash {
                 return Err(DaoFactoryError::SameDaoCodeHash);
             }
@@ -195,9 +203,6 @@ mod dao_factory {
         }
     }
 
-    /// Unit tests in Rust are normally defined within such a `#[cfg(test)]`
-    /// module and test functions are marked with a `#[test]` attribute.
-    /// The below code is technically just normal Rust code.
     #[cfg(test)]
     mod tests {
         /// Imports all the definitions from the outer scope so we can use them here.
@@ -329,7 +334,7 @@ mod dao_factory {
             }     
             assert_ne!(dao_account_id.clone(), AccountId::from([0x0; 32]));
 
-            // Test get the created dao information
+            // Get the created dao information
             let get_dao_info = build_message::<DaoRef>(dao_account_id.clone())
             .call(|dao| dao.get_info());
 
@@ -339,7 +344,7 @@ mod dao_factory {
 
             assert_eq!(dao_info.2, "Name".to_string());
 
-            // Test get_daos
+            // Get created DAOs
             let get_daos = build_message::<DaoFactoryRef>(dao_factory_account_id.clone())
             .call(|dao_factory| dao_factory.get_daos());
 

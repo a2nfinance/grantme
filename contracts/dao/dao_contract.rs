@@ -12,35 +12,63 @@ pub mod dao {
 
     #[ink(storage)]
     pub struct Dao {
+        // DIA Asset Price Oracle
         oracle: contract_ref!(OracleGetters),
+        // DAO owner
         owner: AccountId,
+        // DAO admin
         admin: AccountId,
+        // DAO name
         name: String,
+        // DAO description
         description: String,
+        // Organization website
         website: String,
+        // Contact email
         email: String,
+        // Organization address
         address: String,
+        // Social networks
         social_accounts: Vec<String>,
+        // Workflow steps
         steps: Vec<Step>,
+        // Members of each step.
         step_members: Vec<Vec<AccountId>>,
+        // Funding proposals
         proposals: Vec<Proposal>,
-        // proposal index, step index, proposal voting
+        // Store proposal voting of each step: 
+        // Key: (proposal index, step index), value: ProposalVoting
         proposal_voting_status: Mapping<(u32, u8), ProposalVoting>,
+        // Whitelisted contributors who can fund a DAO.
         whitelisted_contributors: Vec<AccountId>,
+        // Global quorum setting
         global_voting_quorum: u8,
+        // Global threshold setting
         global_voting_threshold: u8,
+        // DAO normal members who can make proposals.
         normal_members: Vec<AccountId>,
+        // Only DAO normal members or anyone can create proposals.
         open: bool,
+        // Active or Paused
         status: bool,
-        // Member address, proposal index, step index, value
+        // Store vote value of each step member
+        // Key: (Member address, proposal index, step index), value: 1 or 2 or 3.
+        // 1: agree, 2: disagree, 3: abstain 
         member_voted: Mapping<(AccountId, u32, u8), u8>,
+        // Allow step members revoting.
+        // If this option is enabled, all proposals must wait until the voting time ends.
         allow_revoting: bool,
+        // Store DAO grant/funding program
         programs: Vec<Program>,
+        // Store proposal indexes of each program.
         program_to_proposals: Vec<Vec<u32>>
     }
 
     impl Dao {
-        /// Constructor that initializes the `bool` value to the given `init_value`.
+
+        // DAO contructor.
+        // This function will be called in the DAOFactory contract.
+        // Users must interact with DAOFactory to create their own DAO.
         #[ink(constructor)]
         pub fn new(
             oracle_address:  AccountId,
@@ -87,7 +115,7 @@ pub mod dao {
             }
         }
 
-
+        // Only whitelisted contributors can fund a DAO.
         #[ink(message, payable)]
         pub fn fund(&self) -> Result<(), Error> {
             let caller = Self::env().caller();
@@ -104,23 +132,26 @@ pub mod dao {
             Ok(())
 
         }
-        // owner: AccountId,
-        // admin: AccountId,
-        // name: String,
-        // description: String,
-        // website: String,
-        // email: String,
-        // address: String,
-        // social_accounts: Vec<String>,
-        // steps: Vec<Step>,
-        // proposals: Vec<Proposal>,
-        // whitelisted_contributors: Vec<AccountId>,
-        // global_voting_quorum: u8,
-        // global_voting_threshold: u8,
-        // normal_members: Vec<AccountId>,
-        // open: bool,
-        // status: bool,
-        // allow_revoting: bool
+
+
+        // owner
+        // admin
+        // name
+        // description
+        // website
+        // email
+        // address
+        // social_accounts,
+        // steps,
+        // num of proposals,
+        // num of whitelisted_contributors,
+        // global_voting_quorum,
+        // global_voting_threshold,
+        // num of normal_members,
+        // num of programs,
+        // open,
+        // status,
+        // allow_revoting
         #[ink(message)]
         pub fn get_info(
             &self,
@@ -134,15 +165,15 @@ pub mod dao {
             String,
             Vec<String>,
             Vec<Step>,
-            // count proposal
+            // num of proposals
             u32,
-            // count whitelisted contributors
+            // num of whitelisted contributors
             u32,
             u8,
             u8,
-            // count normal member
+            // num of normal members
             u32,
-            // count programs
+            // num of programs
             u32,
             bool,
             bool,
@@ -170,6 +201,9 @@ pub mod dao {
             )
         }
 
+
+        // A DAO can have many funding programs at the same time.
+        // A funding program can have many proposals.
         #[ink(message)] 
         pub fn create_program(&mut self, title: String, description: String, start_date: u64, end_date: u64) -> Result<(), Error> {
             let caller = Self::env().caller();
@@ -191,6 +225,8 @@ pub mod dao {
             self.program_to_proposals.push(Vec::new());
             Ok(())
         }
+
+        // Create a proposal within a funding program
         #[ink(message)]
         pub fn create_proposal(
             &mut self,
@@ -207,20 +243,22 @@ pub mod dao {
             to: AccountId,
             allow_early_executed: bool,
         ) -> Result<(), Error> {
-            // Check whether guests or members are allowed to make a proposal.
+            // Check caller privileges
             let caller = Self::env().caller();
             if !self.open {
                 if !self.normal_members.contains(&caller) {
                     return Err(Error::NotANormalMember);
                 }
             }
-            // Check program exist
+
+            // Selected program index is existed or not
             if (self.programs.len() as u32) < program_index {
                 return Err(Error::ProgramIndexOutOfBound);
             }   
 
             let program: &Program = &self.programs[program_index as usize];
 
+            // Check time conditions
             if program.start_date > Self::env().block_timestamp() {
                 return Err(Error::ProgramHasNotStarted);
             }
@@ -231,6 +269,7 @@ pub mod dao {
 
             // Setup proposal
             let count_proposal = self.proposals.len() as u32;
+
             let proposal = Proposal {
                 program_index: program_index,
                 proposal_index: count_proposal,
@@ -250,7 +289,9 @@ pub mod dao {
             };
 
             self.proposals.push(proposal);
-            // Init proposal voting status
+
+
+            // Initial proposal voting values for each workflow step.
             let steps_len: u8 = self.steps.len() as u8;
             let mut i: u8 = 0;
 
@@ -268,34 +309,41 @@ pub mod dao {
                 );
                 i += 1;
             }
-            // Insert to program
+
+            // Update program_to_proposals
             self.program_to_proposals[program_index  as usize].push(count_proposal);
 
             Ok(())
         }
-        // Value: 1 - agree, 2 - disagree, 3 - neutral
+        // Value: 1 - agree, 2 - disagree, 3 - abstain
         #[ink(message)]
         pub fn voting(&mut self, proposal_index: u32, step: u8, value: u8) -> Result<(), Error> {
+            // Check the voting value
             if !Vec::from([1,2,3]).contains(&value) {
                 return Err(Error::IncorrectVotingOption);
             }
+
+            // Check the selected proposal index
             let num_proposals: u32 = self.proposals.len() as u32;
             if proposal_index >= num_proposals {
                 return Err(Error::ProposalIndexOutOfBound);
             }
 
-            // Check voting previlege
-            // Must be step member
+            // Check voting previleges
+            // Caller must be a step member
             if !self._is_allow_vote(step, Self::env().caller()) {
                 return Err(Error::NotAllowVoting);
             }
-            // Check time contraint
+
+           
             let proposal: &Proposal = &self.proposals[proposal_index as usize];
 
+            // An executed proposal can not be voted.
             if proposal.executed {
                 return Err(Error::ProposalHasExecuted);
             }
 
+            // Check time constraint
             if proposal.start_date > Self::env().block_timestamp() {
                 return Err(Error::VotingHasNotStarted);
             }
@@ -304,7 +352,7 @@ pub mod dao {
                 return Err(Error::VotingHasEnded);
             }
 
-            // Check member voted or not
+            // Caller voted or not yet.
             let mut voting_status: ProposalVoting = self
                 .proposal_voting_status
                 .get((proposal_index, step))
@@ -314,6 +362,8 @@ pub mod dao {
                 .member_voted
                 .get((Self::env().caller(), proposal_index, step))
                 .unwrap_or_default();
+
+            // If the caller voted and this DAO allows users revoting.
             if voted_value != 0 {
                 if self.allow_revoting {
                     if voted_value == value {
@@ -327,12 +377,13 @@ pub mod dao {
                     }
 
                     if voted_value == 3 {
-                        voting_status.disagree -= 1;
+                        voting_status.abstain -= 1;
                     }
 
                     self.member_voted
                         .insert((Self::env().caller(), proposal_index, step), &value);
                 } else {
+                    // Could not re-vote.
                     return Err(Error::NotAllowRevoting);
                 }
             } else {
@@ -348,18 +399,20 @@ pub mod dao {
             }
 
             if value == 3 {
-                voting_status.disagree += 1;
+                voting_status.abstain += 1;
             }
 
+            // Update proposal voting status
             self.proposal_voting_status
                 .insert((proposal_index, step), &voting_status);
 
             Ok(())
         }
-
+        
+        // A proposal can be executed only if that proposal qualifies all workflow steps
         #[ink(message)]
         pub fn execute_proposal(&mut self, proposal_index: u32) -> Result<(), Error> {
-            // Check index
+            // Check the selected proposal index.
             let num_proposals: u32 = self.proposals.len() as u32;
             if proposal_index >= num_proposals {
                 return Err(Error::ProposalIndexOutOfBound);
@@ -367,12 +420,13 @@ pub mod dao {
 
             let proposal = &self.proposals[proposal_index as usize];
             let current_timestamp: Timestamp = Self::env().block_timestamp();
+
             // Check time contraints
             if current_timestamp < proposal.start_date {
                 return Err(Error::VotingHasNotStarted);
             }
-            // Check allow revoting, if yes must be disable allow early execute
-            // Check allow early executed, if no, this proposal can be executed when the voting time has ended
+            // If DAO allows revoting, a proposal can not be early executed
+            // If a proposal does not allow early execute, this proposal can be executed when the voting time ends.
             if self.allow_revoting || !proposal.allow_early_executed {
                 if current_timestamp < proposal.end_date {
                     return Err(Error::VotingHasNotEnd);
@@ -394,11 +448,14 @@ pub mod dao {
                     .unwrap_or_default();
                 let mut quorum = step.quorum;
                 let mut threshold = step.threshold;
+
+                // If a Workflow step has it own settings.
                 if step.use_default_settings {
                     quorum = self.global_voting_quorum;
                     threshold = self.global_voting_threshold;
                 }
 
+                // Check conditions to execute.
                 if !self._is_allow_executed(i, voting_status, threshold, quorum) {
                     allow_executed = false;
                     break;
@@ -435,15 +492,17 @@ pub mod dao {
                         return Err(Error::ZeroSendingAmount);
                     }
                 }
-                // Check balance
+                // Check balance conditions.
                 if self.env().balance() < amount {
                     return Err(Error::NotEnoughBalance);
                 }
 
+                // Transfer a token amount to the beneficiary
                 if self.env().transfer(proposal.to, amount).is_err() {
                     panic!("error transferring")
                 }
 
+                // Update the proposal status.
                 self.proposals[proposal_index as usize].executed = true; 
             }
 
@@ -451,22 +510,24 @@ pub mod dao {
         }
 
 
+        // Only the DAO admin can add normal members.
         #[ink(message)]
         pub fn add_normal_member(&mut self, new_member: AccountId) -> Result<(), Error> {
             let caller = Self::env().caller();
             if caller != self.admin {
                 return Err(Error::NotAdmin);
             }
-            // Check normal member exist
+            // Check a normal member existed or not.
             if self.normal_members.contains(&new_member) {
                 return Err(Error::NormalMemberExisted);
             }
-            // Add normal member
+            // Add a normal member
             self.normal_members.push(new_member);
 
             Ok(())
         }
 
+         // Only the DAO admin can remove normal members.
         #[ink(message)]
         pub fn remove_normal_member(&mut self, old_member: AccountId) -> Result<(), Error> {
             let caller = Self::env().caller();
@@ -479,6 +540,7 @@ pub mod dao {
         }
 
 
+        // Only the DAO admin can add whitelisted contributors.
         #[ink(message)]
         pub fn add_whitelisted_contributor(&mut self, new_contributor: AccountId) -> Result<(), Error> {
             let caller = Self::env().caller();
@@ -495,6 +557,7 @@ pub mod dao {
             Ok(())
         }
 
+        // Only the DAO admin can remove whitelisted contributors.
         #[ink(message)]
         pub fn remove_whitelisted_contributor(&mut self, old_member: AccountId) -> Result<(), Error> {
             let caller = Self::env().caller();
@@ -507,6 +570,7 @@ pub mod dao {
         }
 
 
+        // Only the DAO admin can add workflow step members.
         #[ink(message)]
         pub fn add_step_members(
             &mut self,
@@ -531,6 +595,7 @@ pub mod dao {
             Ok(())
         }
 
+        // Only the DAO admin can remove workflow step members.
         #[ink(message)]
         pub fn remove_step_members(&mut self, step_index: u8, old_step_member: AccountId) -> Result<(), Error> {
             let caller = Self::env().caller();
@@ -659,11 +724,12 @@ pub mod dao {
                 return Ok((0, 0,0))
             }
 
-            let mut amount: u128 = 0;
+            let mut amount: u128 = proposal.payment_amount_crypto;
             let option_price: Option<(u64, u128)> = self.oracle.get_latest_price(proposal.cryto_fiat_key.clone());
             let mut fetch_price_success = true;
+            let mut latest_price: u128 = 0;
             match option_price {
-                Some((_, price128)) => amount = (proposal.payment_amount_fiat as u128) * price128,
+                Some((_, price128)) => latest_price = price128,
                 None => fetch_price_success = false
             }
             
@@ -671,7 +737,10 @@ pub mod dao {
                 return Err(Error::CouldNotGetOraclePrice);
             }
 
-            let correct_amount = amount.checked_div(10_u128.pow(6)).unwrap_or_default();
+            amount = (proposal.payment_amount_fiat as u128).checked_mul(10_u128.pow(18)).unwrap_or_default();
+            latest_price = latest_price.checked_div(10_u128.pow(12)).unwrap_or_default();
+            amount = amount.checked_div(latest_price).unwrap_or_default()
+
 
             Ok((amount, correct_amount, self.env().balance()))
 
@@ -679,6 +748,8 @@ pub mod dao {
 
         // Private functions
 
+        // This function will traversal all workflow steps 
+        // and check whether each step has a qualify quorum and threshold.
         fn _is_allow_executed(
             &self,
             step_index: u8,
@@ -694,8 +765,8 @@ pub mod dao {
             let member_len: u8 = members.len() as u8;
             if member_len > 0 {
                 let total_member_votings = agree + disagree + neutral;
-                if total_member_votings * 100 >= (threshold * member_len) as u32
-                    && agree * 100 >= total_member_votings * (quorum as u32)
+                if total_member_votings * 100 >= (quorum * member_len) as u32
+                    && agree * 100 >= total_member_votings * (threshold as u32)
                 {
                     is_allow_executed = true;
                 } else {
@@ -705,6 +776,7 @@ pub mod dao {
             is_allow_executed
         }
 
+        // Whether the caller is a workflow step member or not
         fn _is_allow_vote(&self, step_index: u8, caller: AccountId) -> bool {
             let mut is_allow_vote: bool = false;
             let step_members: &Vec<AccountId> = &self.step_members[step_index as usize];
@@ -1006,15 +1078,16 @@ pub mod dao {
             let get_price_message = build_message::<TokenPriceStorageRef>(contract_acc_id.clone())
                 .call(|tps| tps.get_latest_price("AZERO/USD".to_string()));
 
+            // Get the latest price from Oracle.
             let get_price_res = client
                 .call(&ink_e2e::alice(), get_price_message, 0, None)
                 .await
                 .expect("get failed");
-
+    
             let latest_price = get_price_res.return_value().expect("Value is None").1;
             assert_eq!(latest_price, PRICE);
 
-            // get price for oracle from DAO contract
+            // get Oracle asset price from DAO contract
 
             let get_price_message_example =
                 build_message::<DaoRef>(dao_contract_acc_id.clone())
