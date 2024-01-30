@@ -41,8 +41,8 @@ GrantMe includes two main contracts:
 ## Installation
 
 To build & test smart contract:
-- Go to smart contract folder, e.g ```cd contracts/dao```
-- To build: ```cargo +nightly build```
+- Go to smart contract folder, e.g. ```cd contracts/dao```
+- To build: ```cargo +nightly contract build```
 - To test:
     - Unit tests only: ```cargo +nightly test```
     - Unit tests & E2E tests: ```cargo +nightly test --features e2e-tests```
