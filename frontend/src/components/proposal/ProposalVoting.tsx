@@ -68,13 +68,13 @@ export const ProposalVoting = () => {
                                                 <ThresholdSlider
                                                     threshold={
                                                         dao.steps[index].useDefaultSettings ? dao.global_voting_threshold : dao.steps[index].threshold
-                                                    } votingStatus={stepVotings[index]} />
+                                                    } votingStatus={step} />
                                             </Descriptions.Item>
                                             <Descriptions.Item label={"Quorum"}>
                                                 <QuorumSlider
                                                     quorum={
                                                         dao.steps[index].useDefaultSettings ? dao.global_voting_quorum : dao.steps[index].quorum
-                                                    } votingStatus={stepVotings[index]} stepMembers={stepMembers[index]} />
+                                                    } votingStatus={step} stepMembers={stepMembers[index]} />
                                             </Descriptions.Item>
                                         </Descriptions>
                                         <Divider />
