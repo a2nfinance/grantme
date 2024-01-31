@@ -1,5 +1,5 @@
 ## Introduction
-Grant me is a DAO-based platform for local government funding programs with procedural steps for various administration groups.
+GrantMe is a DAO-based platform for local government funding programs with procedural steps for various administration groups.
 
 ## Demo information
 - [Frontend Application](https://grantme.a2n.finance)
